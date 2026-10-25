@@ -1,6 +1,7 @@
 import "server-only";
 import { contentDefaults, type ContentKey, type ContentMap } from "@/content/registry";
-import { mergeContent } from "@/lib/content/merge";
+import { mergeDocument } from "@/lib/content/merge";
+import { RETIRED_DEFAULTS } from "@/lib/content/retired";
 import { TABLES } from "@/lib/supabase/config";
 import type { AdminSession } from "./auth";
 
@@ -43,7 +44,7 @@ export async function getDraftContent<K extends ContentKey>(
   const published = rows.find((r) => r.status === "published");
   const source = draft ?? published;
   return {
-    content: mergeContent(contentDefaults[key], source?.data),
+    content: mergeDocument(contentDefaults[key], source?.data, RETIRED_DEFAULTS[key]),
     updatedAt: source?.updated_at ?? null,
     isDraft: Boolean(draft),
   };
@@ -57,7 +58,7 @@ export async function getAllDraftContent(session: AdminSession): Promise<Content
       const source =
         rows.find((r) => r.key === key && r.status === "draft") ??
         rows.find((r) => r.key === key && r.status === "published");
-      return [key, mergeContent(contentDefaults[key], source?.data)];
+      return [key, mergeDocument(contentDefaults[key], source?.data, RETIRED_DEFAULTS[key])];
     }),
   ) as ContentMap;
 }

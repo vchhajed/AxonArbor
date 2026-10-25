@@ -57,7 +57,7 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
         ref={sectionRef}
         id="problem"
         aria-labelledby="problem-heading"
-        className={editing ? "relative" : "relative pin:h-[340vh]"}
+        className={editing ? "relative" : "relative pin:h-[280vh]"}
       >
         <div
           className={

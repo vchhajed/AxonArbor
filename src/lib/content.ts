@@ -1,7 +1,8 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { contentDefaults, type ContentKey, type ContentMap } from "@/content/registry";
-import { mergeContent } from "./content/merge";
+import { mergeDocument } from "./content/merge";
+import { RETIRED_DEFAULTS } from "./content/retired";
 import { CONTENT_TAG, TABLES } from "./supabase/config";
 import { createPublicClient } from "./supabase/public";
 
@@ -23,7 +24,7 @@ export async function getContent<K extends ContentKey>(key: K): Promise<ContentM
       .eq("status", "published")
       .maybeSingle();
     if (error) throw error;
-    return mergeContent(contentDefaults[key], data?.data);
+    return mergeDocument(contentDefaults[key], data?.data, RETIRED_DEFAULTS[key]);
   } catch (error) {
     console.warn(`[content] Using defaults for "${key}":`, (error as Error).message);
     return contentDefaults[key];

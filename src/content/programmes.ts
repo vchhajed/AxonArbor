@@ -80,6 +80,78 @@ export const programmes: ProgrammesContent = {
     ],
   },
 
+  capabilityStack: {
+    eyebrow: "Our offerings",
+    heading: "The Axon Arbor 360 Capability Stack",
+    lede: "Four layers that work as one system, from understanding where you are today to changing how your organisation works.",
+    ring: { value: "360", label: "Capability" },
+    columns: [
+      {
+        title: "Assess & Diagnose",
+        items: [
+          "Assessments",
+          "Culture surveys",
+          "Competency mapping",
+          "Coaching",
+        ],
+      },
+      {
+        title: "Build Capability",
+        items: [
+          "E-modules",
+          "Micro-learning",
+          "Leadership journeys",
+          "Case-study methodology",
+          "Soft skills",
+          "Technical training",
+          "POSH training",
+          "Gen AI-enabled role plays",
+        ],
+      },
+      {
+        title: "Enable at Scale",
+        items: [
+          "Celebrity & industry speakers",
+          "Employer branding",
+          "Internal campaigns",
+        ],
+      },
+      {
+        title: "Drive Culture & Engagement",
+        items: [
+          "Team building",
+          "CXO offsites",
+          "Diversity, Equity, Inclusion & Belonging interventions",
+        ],
+      },
+    ],
+  },
+
+  beyondTraining: {
+    eyebrow: "Beyond training",
+    heading: "Creating moments that move people",
+    items: [
+      {
+        title: "Diversity, Equity & Inclusion",
+        icon: "inclusion",
+        body: "Building truly inclusive cultures where everyone can thrive.",
+        href: "/programmes#diversity-equity-inclusion",
+      },
+      {
+        title: "Celebrity & Industry Experts",
+        icon: "speaker",
+        body: "Learn from the best. Speakers who turn an event into something people remember.",
+        href: "/about#partners",
+      },
+      {
+        title: "Executive Coaching",
+        icon: "coaching",
+        body: "Coaching for leaders, grounded in the Appreciative Inquiry model.",
+        href: "/programmes#coaching-mentoring-assessment",
+      },
+    ],
+  },
+
   cta: {
     heading: "Build the programme your people need.",
     body: "Tell us about your teams and your goals. We’ll bring the right specialists to the table.",

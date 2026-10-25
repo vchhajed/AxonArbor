@@ -17,7 +17,7 @@ export function Footer({ site }: { site: SiteContent }) {
         <nav aria-label="Footer" className="lg:col-span-3">
           <h2 className="eyebrow text-grey-400">{footer.exploreHeading}</h2>
           <ul className="mt-5 space-y-3 text-sm">
-            {[...site.nav, site.signIn].map((link) => (
+            {[...site.nav, ...(site.headerCta?.label ? [site.headerCta] : []), site.signIn].map((link) => (
               <li key={`${link.href}-${link.label}`}>
                 <Link href={link.href} className="text-grey-200 transition-colors hover:text-amber">
                   {link.label}

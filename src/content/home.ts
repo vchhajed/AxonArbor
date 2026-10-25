@@ -2,25 +2,47 @@ import type { HomeContent } from "./types";
 
 export const home: HomeContent = {
   meta: {
-    title: "Learning & Development Solutions",
+    title: "Curated people development experts",
     description:
-      "Axon Arbor replaces 8–10 fragmented L&D vendors with one partner: assessment, capability building, leadership journeys, coaching and culture, designed and delivered as one ecosystem.",
+      "Axon Arbor brings all your people development needs under one roof: a curated network of experts with two decades of experience or more, matched to your brief. Join the waitlist.",
     path: "/",
   },
 
-  hero: {
-    illustration: "arbor",
+  hook: {
     eyebrow: ["Learning", "Leadership", "Belonging"],
-    heading: "The Learning & Development partner that works for you.",
-    lede: "Axon Arbor is a Learning & Development solutions company. We design, deliver and integrate every part of capability building, so learning becomes a business advantage rather than a reactive function.",
-    primaryCta: { label: "Schedule a Consultation", href: "/contact" },
-    secondaryCta: { label: "See the problem we solve", href: "#problem" },
+    heading: ["Not crowded.", "Curated."],
+    lede: "Axon Arbor brings all your people development needs under one roof: a curated network of experts with two decades of experience or more, matched to your brief.",
+    backdrop: {
+      video: "/video/hero-close-16x9.mp4",
+      videoMobile: "/video/hero-close-9x16.mp4",
+      poster: "/video/hero-close-16x9.jpg",
+      posterMobile: "/video/hero-close-9x16.jpg",
+    },
+    hire: {
+      eyebrow: "For organisations",
+      label: "I want to hire an expert",
+      href: "/join/company",
+      backdrop: {
+        video: "/video/hero-relief-16x9.mp4",
+        videoMobile: "/video/hero-relief-9x16.mp4",
+        poster: "/video/hero-relief-16x9.jpg",
+        posterMobile: "/video/hero-relief-9x16.jpg",
+      },
+    },
+    work: {
+      eyebrow: "For experts",
+      label: "I want to join as an expert",
+      href: "/join/consultant",
+      backdrop: { video: "", videoMobile: "", poster: "", posterMobile: "" },
+    },
+    waitlist: { label: "Join the waitlist", href: "#join" },
+    trust: ["20+ years’ experience each", "Every expert reviewed", "Woman-owned"],
   },
 
   problem: {
     eyebrow: "The problem",
     heading: "The Hidden Cost of Fragmented Learning",
-    lede: "Most CLOs and CHROs juggle eight to ten learning vendors at once. Each one solves a slice of the problem. None of them sees the whole.",
+    lede: "In most large companies the L&D team is small and most training is outsourced. So the people meant to shape strategy spend their days managing eight to ten vendors instead.",
     stat: { value: "8–10", label: "vendors on a typical CLO’s roster" },
     resolvedStat: { value: "1", label: "partner. One connected ecosystem." },
     vendors: [
@@ -37,28 +59,28 @@ export const home: HomeContent = {
     ],
     painPoints: [
       {
-        title: "The silo effect",
-        body: "Every vendor works in isolation, with its own brief, its own calendar and its own idea of success.",
-        vendors: [4, 6, 7, 8],
+        title: "Finding an expert runs on favours",
+        body: "“Can anyone recommend someone for team building?” Every request means days of asking around WhatsApp groups, three proposals for procurement, then empanelment.",
+        vendors: [0, 4, 7, 8],
       },
       {
-        title: "No single view of impact",
-        body: "Data sits with each provider in a different format, so no one can say what learning is doing for the business.",
-        vendors: [5, 6, 4],
+        title: "The same three to five consultants",
+        body: "Your reputation rides on a vendor’s delivery, so comfort wins over the right fit, and the outside-in perspective never arrives.",
+        vendors: [0, 4, 5],
       },
       {
-        title: "Uneven vendor quality",
-        body: "Standards vary from one partner to the next, and so does the experience of your people.",
-        vendors: [1, 2, 7, 9],
+        title: "Silos, and no single view of impact",
+        body: "Every vendor works to its own brief and keeps its own data, so no one can say what learning is doing for the business.",
+        vendors: [1, 5, 6],
       },
       {
-        title: "Weak integration",
-        body: "Leadership, compliance and culture programmes rarely connect, so one never reinforces another.",
-        vendors: [0, 1, 3],
+        title: "Uneven quality, weak integration",
+        body: "Standards vary from one partner to the next, and leadership, compliance and culture programmes rarely reinforce each other.",
+        vendors: [2, 3, 9],
       },
     ],
     resolution:
-      "Axon Arbor exists to turn learning into a business advantage: a strategic driver of organisational success, not a reactive function.",
+      "Finding the right fit takes more than a database. It takes experts who understand people development.",
     hubLabel: "Axon Arbor",
   },
 
@@ -72,104 +94,125 @@ export const home: HomeContent = {
     caption: "The hidden cost of fragmented learning",
   },
 
-  ecosystem: {
-    eyebrow: "The solution",
-    heading: "One Partner, Complete Learning Ecosystem",
-    lede: "One accountable partner for every part of capability building, from the first diagnostic to the last offsite.",
-    pillars: [
-      {
-        title: "One Stop Shop",
-        icon: "one-stop",
-        body: "A full-stack L&D partner that designs, delivers and integrates every aspect of capability building. No more vendor juggling.",
-      },
-      {
-        title: "Tailored Solutions",
-        icon: "tailored",
-        body: "We have a knack for reading the pulse of your stakeholders and drawing meaning from diverse sources of information, then designing around what we hear.",
-      },
-      {
-        title: "Subject Matter Experts",
-        icon: "experts",
-        body: "Highly experienced consultants, coaches and SMEs who have spent years honing their craft, matched to each brief to strengthen your internal brand.",
-      },
+  curated: {
+    eyebrow: "Not crowded but curated",
+    heading: "One partner. A curated network. The right expert for every brief.",
+    lede: "A hand-picked network of domain and subject matter experts, each with two decades or more of experience. We understand your need, recommend the right expert, and stay accountable through delivery.",
+    tiles: [
+      { title: "Curated, not crowded", body: "Every expert is reviewed by people who know this market. No 1,000-name LinkedIn search.", icon: "" },
+      { title: "The Axon Arbor promise", body: "One standard of excellence on every engagement, and one team accountable for it.", icon: "" },
+      { title: "Outside-in perspective", body: "Fresh expertise beyond the three to five consultants you always use.", icon: "" },
+      { title: "Supplier diversity", body: "A woman-owned business with more women than men in our network, supporting your ESG and DEI goals.", icon: "" },
+      { title: "Local experts, lower cost", body: "A facilitator in your city means no flights or hotel stays.", icon: "" },
+      { title: "One partner, every need", body: "Assessments, workshops, coaching, speakers, offsites and DEI: one partner instead of ten.", icon: "" },
     ],
+    stats: [
+      { value: "20+", label: "years: the minimum experience of our experts", show: true },
+      { value: "", label: "lower cost per programme", show: false },
+      { value: "", label: "hours of L&D admin saved per request", show: false },
+      { value: "", label: "days to a shortlist", show: false },
+    ],
+    programmesLink: { label: "See all programmes", href: "/programmes" },
   },
 
-  capabilityStack: {
-    eyebrow: "Our offerings",
-    heading: "The Axon Arbor 360 Capability Stack",
-    lede: "Four layers that work as one system, from understanding where you are today to changing how your organisation works.",
-    ring: { value: "360", label: "Capability" },
-    columns: [
-      {
-        title: "Assess & Diagnose",
-        items: [
-          "Assessments",
-          "Culture surveys",
-          "Competency mapping",
-          "Coaching",
-        ],
-      },
-      {
-        title: "Build Capability",
-        items: [
-          "E-modules",
-          "Micro-learning",
-          "Leadership journeys",
-          "Case-study methodology",
-          "Soft skills",
-          "Technical training",
-          "POSH training",
-          "Gen AI-enabled role plays",
-        ],
-      },
-      {
-        title: "Enable at Scale",
-        items: [
-          "Celebrity & industry speakers",
-          "Employer branding",
-          "Internal campaigns",
-        ],
-      },
-      {
-        title: "Drive Culture & Engagement",
-        items: [
-          "Team building",
-          "CXO offsites",
-          "Diversity, Equity, Inclusion & Belonging interventions",
-        ],
-      },
+  howItWorks: {
+    eyebrow: "How it works",
+    heading: "From brief to the right expert, with one partner throughout.",
+    lede: "For organisations. Five steps, and Axon Arbor stays with you at every one.",
+    steps: [
+      { title: "Tell us about your organisation", body: "Your team size, location and what you’re looking to solve.", icon: "" },
+      { title: "Describe what you need", body: "In your own words, for example “team building for 40 mid-level managers in Pune”.", icon: "" },
+      { title: "We shortlist three relevant experts", body: "From our reviewed network, with why each could be a good fit.", icon: "" },
+      { title: "An Axon Arbor expert helps you choose", body: "A free 30-minute discovery call to find the right one.", icon: "" },
+      { title: "Meet, decide, deliver", body: "A three-way call with you, the expert and Axon Arbor, then delivery and feedback from both sides.", icon: "" },
     ],
+    note: "Contact always goes through Axon Arbor, so quality and accountability stay with us.",
   },
 
-  beyondTraining: {
-    eyebrow: "Beyond training",
-    heading: "Creating moments that move people",
-    items: [
+  expertise: {
+    show: true,
+    eyebrow: "Depth of expertise",
+    heading: "Depth you can see.",
+    lede: "Matches are shown on expertise, not on names, so you judge the fit first.",
+    note: "Illustrative profiles. Real matches are anonymised the same way.",
+    cards: [
       {
-        title: "Diversity, Equity & Inclusion",
-        icon: "inclusion",
-        body: "Building truly inclusive cultures where everyone can thrive.",
-        href: "/programmes#diversity-equity-inclusion",
+        name: "Consultant A",
+        specialty: "Executive coaching",
+        experience: "24 years",
+        certifications: "ICF PCC coach",
+        workedWith: "BFSI and IT services",
+        badge: "Professional",
       },
       {
-        title: "Celebrity & Industry Experts",
-        icon: "speaker",
-        body: "Learn from the best. Speakers who turn an event into something people remember.",
-        href: "/about#partners",
+        name: "Consultant B",
+        specialty: "Psychometric assessments",
+        experience: "21 years",
+        certifications: "DISC and Hogan certified",
+        workedWith: "Manufacturing and pharma",
+        badge: "Expert",
       },
       {
-        title: "Executive Coaching",
-        icon: "coaching",
-        body: "Coaching for leaders, grounded in the Appreciative Inquiry model.",
-        href: "/programmes#coaching-mentoring-assessment",
+        name: "Consultant C",
+        specialty: "Leadership journeys",
+        experience: "26 years",
+        certifications: "Appreciative Inquiry practitioner",
+        workedWith: "FMCG and automotive",
+        badge: "Professional",
+      },
+      {
+        name: "Consultant D",
+        specialty: "Hospitality service excellence",
+        experience: "20 years",
+        certifications: "Certified hospitality trainer",
+        workedWith: "Luxury hotels and restaurants",
+        badge: "Expert",
       },
     ],
+    logosHeading: "Our experts have worked with",
+    showLogos: false,
+    logos: [{ src: "", alt: "", width: 240, height: 96 }],
   },
 
-  cta: {
-    heading: "Make learning your business advantage.",
-    body: "Tell us where you are today. We’ll show you what one connected learning ecosystem could look like for your organisation.",
-    cta: { label: "Schedule a Consultation", href: "/contact" },
+  demo: {
+    show: true,
+    eyebrow: "See it in action",
+    heading: "See how it works in one minute.",
+    lede: "Narrated by our founder, Richa Singh.",
+    media: {
+      video: "/video/demo-16x9.mp4",
+      videoMobile: "/video/demo-9x16.mp4",
+      poster: "/video/demo-16x9.jpg",
+      posterMobile: "/video/demo-9x16.jpg",
+      captions: "/video/demo-captions.vtt",
+    },
+    cta: { label: "Join the waitlist", href: "#join" },
+  },
+
+  testimonials: {
+    show: false,
+    eyebrow: "In their words",
+    heading: "What people development leaders say.",
+    items: [{ quote: "", name: "", role: "HR Director, BFSI, 5,000+ employees", show: false }],
+  },
+
+  join: {
+    heading: "Be among the first.",
+    body: "Join the waitlist and we’ll be in touch before launch.",
+    doors: [
+      {
+        eyebrow: "For organisations",
+        label: "Register your organisation",
+        body: "Company email only. We verify every organisation, usually within one working day.",
+        href: "/join/company",
+      },
+      {
+        eyebrow: "For experts",
+        label: "Join as an expert",
+        body: "Create your profile. Our team reviews it before it goes live, and your identity stays private.",
+        href: "/join/consultant",
+      },
+    ],
+    secondary: { label: "Rather talk now? Schedule a consultation", href: "/contact" },
   },
 };

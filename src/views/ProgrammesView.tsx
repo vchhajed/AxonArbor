@@ -1,12 +1,14 @@
 import { Container } from "@/components/layout/Container";
 import { Reveal } from "@/components/motion/Reveal";
+import { BeyondTraining } from "@/components/sections/BeyondTraining";
+import { CapabilityStack } from "@/components/sections/CapabilityStack";
 import { CTABand } from "@/components/sections/CTABand";
 import { PageHeader } from "@/components/sections/PageHeader";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { ProgrammesContent } from "@/content/types";
 
 export function ProgrammesView({ programmes }: { programmes: ProgrammesContent }) {
-  const { header, intro, areas, programmes: signature, cta } = programmes;
+  const { header, intro, areas, programmes: signature, capabilityStack, beyondTraining, cta } = programmes;
   return (
     <>
       <PageHeader {...header} />
@@ -81,6 +83,9 @@ export function ProgrammesView({ programmes }: { programmes: ProgrammesContent }
           </ol>
         </Container>
       </section>
+
+      <CapabilityStack {...capabilityStack} />
+      <BeyondTraining {...beyondTraining} />
 
       <CTABand {...cta} />
     </>

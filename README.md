@@ -20,7 +20,8 @@ src/
     sitemap.ts, robots.ts, icon.png, apple-icon.png, opengraph-image.png
   components/
     layout/             Header, Footer, Logo, Container
-    sections/           Hero, ProblemSection, VendorConstellation, PullQuote, PillarGrid,
+    sections/           HookHero, ProblemSection, VendorConstellation, PullQuote, Curated,
+                        HowItWorks, Expertise, DemoVideo, Testimonials, JoinBand, Hideable,
                         CapabilityStack, BeyondTraining, CTABand, PageHeader, PersonCard
     forms/              ContactForm
     motion/             MotionProvider (Framer Motion, problem section only), Reveal (CSS)
@@ -62,6 +63,27 @@ Project `supabase-charcoal-planet` is shared with other sites, so every object i
 form. Run `supabase/migrations/20261020000000_axon_arbor_cms.sql` once.
 
 Copy `.env.example` to `.env.local` and fill it in. Add the same variables to the Vercel project.
+
+## Home page: seven folds
+
+1. **Hook**: greyscale video backdrop with two doors, *I want to hire an expert* (`/join/company`)
+   and *I want to join as an expert* (`/join/consultant`). Hovering a door can swap to its own
+   video (`hook.hire.backdrop`, `hook.work.backdrop`; leave the video empty to keep the main one).
+2. **Problem**: the pinned vendor story and the pull quote.
+3. **Not crowded but curated**: six benefits, numbers (each has *Show on the site*; only confirmed
+   numbers are on), and the topic ticker.
+4. **How it works** (`/#how-it-works`) and **Depth of expertise** (anonymised sample experts,
+   labelled illustrative; optional client-logo strip, off until logos arrive).
+5. **Demo video**: 16:9 on wider screens, 9:16 on phones, captions from a `.vtt` file. Loads on play.
+6. **Testimonials**: off until real quotes arrive. No made-up testimonials.
+7. **Be among the first** (`/#join`): the two sign-up doors, plus *Schedule a consultation*.
+
+Sections and items switched off still appear in the inline editor, dimmed, so they can be filled
+in first. Videos live in `public/video/` (H.264, `+faststart`; hero loops are muted, ~0.5 MB).
+
+`src/lib/content/retired.ts` keeps earlier defaults: a stored section that still equals one of them
+(nobody edited it) picks up the new default copy instead. Sections removed from the code are
+dropped from stored documents when they load.
 
 ## Brand rules
 
