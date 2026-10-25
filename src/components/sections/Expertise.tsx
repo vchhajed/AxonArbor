@@ -9,13 +9,18 @@ const badgeTone: Record<string, string> = {
   expert: "bg-ink text-paper",
 };
 
-function Silhouette() {
+/** An anonymised avatar: the consultant's letter ("Consultant A" → "A"), never a face or a name. */
+function Monogram({ name, tone }: { name: string; tone: string }) {
+  const letter = name.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() || "?";
   return (
-    <svg aria-hidden="true" viewBox="0 0 64 64" className="size-14 text-grey-300">
-      <rect width="64" height="64" fill="currentColor" opacity="0.35" />
-      <circle cx="32" cy="25" r="11" fill="currentColor" />
-      <path d="M12 64c2-14 10-21 20-21s18 7 20 21z" fill="currentColor" />
-    </svg>
+    <span
+      aria-hidden="true"
+      className={`flex size-14 items-center justify-center rounded-full font-serif text-2xl ${
+        tone === "professional" ? "bg-amber text-ink" : "bg-ink text-paper"
+      }`}
+    >
+      {letter}
+    </span>
   );
 }
 
@@ -30,14 +35,21 @@ export function Expertise({ eyebrow, heading, lede, note, cards, logosHeading, s
           {note && <p className="eyebrow shrink-0 text-grey-500">{note}</p>}
         </Reveal>
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((card, i) => (
-            <Reveal as="li" key={i} delay={i * 0.08} className="flex flex-col border border-grey-200 p-6">
+          {cards.map((card, i) => {
+            const tone = card.badge?.trim().toLowerCase().replace(/[^a-z]/g, "") ?? "";
+            return (
+            <Reveal
+              as="li"
+              key={i}
+              delay={i * 0.08}
+              className="flex flex-col border border-grey-200 p-6 transition-colors hover:border-ink"
+            >
               <div className="flex items-start justify-between gap-4">
-                <Silhouette />
+                <Monogram name={card.name} tone={tone} />
                 {card.badge && (
                   <span
                     className={`font-label text-[0.65rem] font-semibold tracking-[0.16em] uppercase ${
-                      badgeTone[card.badge.trim().toLowerCase().replace(/[^a-z]/g, "")] ?? "border border-ink"
+                      badgeTone[tone] ?? "border border-ink"
                     } px-2.5 py-1`}
                   >
                     {card.badge}
@@ -61,7 +73,8 @@ export function Expertise({ eyebrow, heading, lede, note, cards, logosHeading, s
                 </div>
               </dl>
             </Reveal>
-          ))}
+            );
+          })}
         </ul>
 
         {shownLogos.length > 0 && (

@@ -44,7 +44,7 @@ export function Header({ site }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-grey-200 bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/85">
+      <header className="sticky top-0 z-50 border-b border-grey-200 bg-paper">
         <a
           href="#main"
           className="eyebrow sr-only bg-amber px-4 py-3 text-ink focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
@@ -130,8 +130,8 @@ export function Header({ site }: HeaderProps) {
         </Container>
       </header>
 
-      {/* Kept outside <header>: its backdrop-filter would otherwise become the
-          containing block for this fixed panel and collapse it to 0px tall. */}
+      {/* Kept outside <header> so the fixed panel is sized by the viewport,
+          whatever styles the header picks up later. */}
       <div
         id={menuId}
         hidden={!open}
