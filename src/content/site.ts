@@ -8,7 +8,7 @@ export const site: SiteContent = {
   legalName: "Axon Arbor Consulting",
   tagline: "Learning · Leadership · Belonging",
   description:
-    "Axon Arbor is a Learning & Development solutions company in Noida, India. One partner for assessment, capability building, leadership development, coaching and culture.",
+    "Axon Arbor is a curated network of people development experts, based in Noida, India. One partner for assessments, workshops, coaching, speakers, offsites and culture.",
   logo: {
     src: "/brand/logo.png",
     alt: "Axon Arbor",
@@ -17,12 +17,14 @@ export const site: SiteContent = {
   },
   nav: [
     { label: "Home", href: "/" },
+    { label: "How it works", href: "/#how-it-works" },
     { label: "Our Programmes", href: "/programmes" },
     { label: "The Hospitality Vertical", href: "/hospitality" },
     { label: "About Us", href: "/about" },
     { label: "Contact Us", href: "/contact" },
   ],
   signIn: { label: "Sign in", href: "/sign-in" },
+  headerCta: { label: "Join the waitlist", href: "/#join" },
   skipLinkLabel: "Skip to content",
   contact: {
     email: "info@axonarbor.in",
@@ -31,7 +33,7 @@ export const site: SiteContent = {
     address: ["Jaypee Wishtown, Sector 128", "Noida, UP 201304", "India"],
   },
   footer: {
-    blurb: "One partner for the complete learning ecosystem, from diagnosis to delivery to culture.",
+    blurb: "A curated network of people development experts. One partner for every brief, from diagnosis to delivery to culture.",
     exploreHeading: "Explore",
     contactHeading: "Get in touch",
     location: "Noida, India",

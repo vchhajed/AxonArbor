@@ -692,7 +692,6 @@ function TextPopover({
   const parentPath = refField.path.slice(0, -1);
   const parent = getAt(root, parentPath);
   const hasLink = isRecord(parent) && typeof parent.href === "string";
-  const hasTone = isRecord(parent) && "tone" in parent && refField.path.includes("parts");
   const vendorNames = refField.doc === "home" ? ((getAt(root, ["problem", "vendors"]) as string[] | undefined) ?? []) : [];
   const highlights = isRecord(parent) && Array.isArray(parent.vendors) ? (parent.vendors as number[]) : null;
   const list = nearestList(root, refField.path);
@@ -705,7 +704,7 @@ function TextPopover({
     el.setSelectionRange(el.value.length, el.value.length);
   }, []);
 
-  const pos = place(rect, 420, 240 + (hasLink ? 60 : 0) + (hasTone ? 60 : 0) + (highlights ? 110 : 0));
+  const pos = place(rect, 420, 240 + (hasLink ? 60 : 0) + (highlights ? 110 : 0));
 
   function listAction(kind: "add" | "remove" | "up" | "down") {
     if (!list || !listItems) return;
@@ -766,20 +765,6 @@ function TextPopover({
               </option>
             ))}
           </datalist>
-        </label>
-      )}
-      {hasTone && (
-        <label className="mt-3 block text-xs font-medium text-grey-700">
-          Style
-          <select
-            value={String((parent as { tone?: string }).tone ?? "")}
-            onChange={(e) => onChange([...parentPath, "tone"], e.target.value)}
-            className="mt-1 block w-full border border-grey-300 px-3 py-2 text-sm focus:border-ink focus:outline-none"
-          >
-            <option value="">Normal</option>
-            <option value="heavy">Heavy (bold, sinks)</option>
-            <option value="light">Light (italic, lifts)</option>
-          </select>
         </label>
       )}
       {highlights && vendorNames.length > 0 && (

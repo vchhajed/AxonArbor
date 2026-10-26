@@ -62,3 +62,42 @@ export function mergeContent<T>(base: T, stored: Json): T {
   if (base === undefined) return stored as T;
   return (typeof stored === typeof base ? stored : base) as T;
 }
+
+/**
+ * True when every value in `stored` equals the same value in `old`. Fields
+ * added to the defaults after a section was saved don't count as edits.
+ */
+function unchangedFrom(stored: Json, old: Json): boolean {
+  if (stored === old) return true;
+  if (Array.isArray(stored) && Array.isArray(old)) {
+    return stored.length === old.length && stored.every((v, i) => unchangedFrom(v, old[i]));
+  }
+  if (isObject(stored) && isObject(old)) {
+    return Object.keys(stored).every((k) => k in old && unchangedFrom(stored[k], old[k]));
+  }
+  return false;
+}
+
+/**
+ * Merges a stored content document over its defaults (see mergeContent), and
+ * also:
+ * - drops top-level sections the code no longer has, so retired sections
+ *   don't linger in the admin's forms;
+ * - ignores a stored section that still equals an earlier default exactly
+ *   (`retired`, ignoring fields added since), so untouched sections pick up
+ *   new default copy.
+ */
+export function mergeDocument<T extends Record<string, Json>>(
+  base: T,
+  stored: Json,
+  retired: Record<string, Json[]> = {},
+): T {
+  if (!isObject(stored)) return base;
+  const kept: Record<string, Json> = {};
+  for (const key of Object.keys(base)) {
+    if (!(key in stored)) continue;
+    if (retired[key]?.some((old) => unchangedFrom(stored[key], old))) continue;
+    kept[key] = stored[key];
+  }
+  return mergeContent(base, kept);
+}

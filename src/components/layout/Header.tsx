@@ -12,11 +12,11 @@ function isActive(pathname: string, href: string) {
 }
 
 type HeaderProps = {
-  site: Pick<SiteContent, "name" | "logo" | "nav" | "signIn" | "skipLinkLabel">;
+  site: Pick<SiteContent, "name" | "logo" | "nav" | "signIn" | "headerCta" | "skipLinkLabel">;
 };
 
 export function Header({ site }: HeaderProps) {
-  const { nav: mainNav, signIn: signInLink } = site;
+  const { nav: mainNav, signIn: signInLink, headerCta } = site;
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(pathname);
@@ -38,12 +38,13 @@ export function Header({ site }: HeaderProps) {
     };
   }, [open]);
 
-  const links = mainNav.filter((l) => l.href !== "/contact");
+  // The logo already links home; Contact sits beside Sign in on the right.
+  const links = mainNav.filter((l) => l.href !== "/contact" && l.href !== "/");
   const contact = mainNav.find((l) => l.href === "/contact");
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-grey-200 bg-paper/95 backdrop-blur supports-[backdrop-filter]:bg-paper/85">
+      <header className="sticky top-0 z-50 border-b border-grey-200 bg-paper">
         <a
           href="#main"
           className="eyebrow sr-only bg-amber px-4 py-3 text-ink focus:not-sr-only focus:absolute focus:top-2 focus:left-2"
@@ -87,9 +88,17 @@ export function Header({ site }: HeaderProps) {
               <Link
                 href={contact.href}
                 aria-current={isActive(pathname, contact.href) ? "page" : undefined}
-                className="eyebrow bg-ink px-5 py-3 text-paper transition-colors hover:bg-amber hover:text-ink"
+                className="text-sm text-grey-600 transition-colors hover:text-ink"
               >
                 {contact.label}
+              </Link>
+            )}
+            {headerCta?.label && (
+              <Link
+                href={headerCta.href}
+                className="eyebrow bg-amber px-5 py-3 text-ink transition-colors hover:bg-ink hover:text-paper"
+              >
+                {headerCta.label}
               </Link>
             )}
           </div>
@@ -121,8 +130,8 @@ export function Header({ site }: HeaderProps) {
         </Container>
       </header>
 
-      {/* Kept outside <header>: its backdrop-filter would otherwise become the
-          containing block for this fixed panel and collapse it to 0px tall. */}
+      {/* Kept outside <header> so the fixed panel is sized by the viewport,
+          whatever styles the header picks up later. */}
       <div
         id={menuId}
         hidden={!open}
@@ -147,6 +156,15 @@ export function Header({ site }: HeaderProps) {
               );
             })}
           </ul>
+          {headerCta?.label && (
+            <Link
+              href={headerCta.href}
+              onClick={() => setOpen(false)}
+              className="eyebrow mt-8 bg-amber px-5 py-4 text-center text-ink"
+            >
+              {headerCta.label}
+            </Link>
+          )}
           <Link
             href={signInLink.href}
             onClick={() => setOpen(false)}

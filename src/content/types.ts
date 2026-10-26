@@ -44,24 +44,71 @@ export type PainPoint = Item & {
   vendors: number[];
 };
 
-export type QuotePart = {
-  text: string;
-  tone?: "heavy" | "light";
-};
-
 export type CapabilityColumn = {
   title: string;
   items: string[];
 };
 
-export type HeroContent = {
-  /** "arbor" for the built-in tree drawing, an uploaded image URL, or empty for none. */
-  illustration: string;
+/** A looping background video: a landscape and a portrait cut, each with a still for slow connections. */
+export type VideoBackdrop = {
+  video: string;
+  videoMobile: string;
+  poster: string;
+  posterMobile: string;
+};
+
+/** One of the two hero doors ("I want to hire" / "I want to work"). */
+export type HeroDoor = Link & {
+  /** Small label above the button text, e.g. "For organisations". */
+  eyebrow: string;
+  /** Backdrop shown while this door is hovered or focused. Empty video keeps the main one. */
+  backdrop: VideoBackdrop;
+};
+
+export type HookContent = {
+  /** Small label above the headline, one word per item, joined by amber dots. */
   eyebrow: string[];
-  heading: string;
+  /** Headline lines; the last one is set in italics. */
+  heading: string[];
   lede: string;
-  primaryCta: Link;
-  secondaryCta: Link;
+  backdrop: VideoBackdrop;
+  hire: HeroDoor;
+  work: HeroDoor;
+  waitlist: Link;
+  /** Short facts under the buttons. Only confirmed facts. */
+  trust: string[];
+};
+
+export type Stat = {
+  value: string;
+  label: string;
+  /** Off until the number is confirmed. */
+  show: boolean;
+};
+
+export type ExpertCard = {
+  name: string;
+  specialty: string;
+  experience: string;
+  certifications: string;
+  workedWith: string;
+  badge: string;
+};
+
+export type Testimonial = {
+  quote: string;
+  name: string;
+  role: string;
+  show: boolean;
+};
+
+export type DemoVideo = {
+  video: string;
+  videoMobile: string;
+  poster: string;
+  posterMobile: string;
+  /** WebVTT captions file. */
+  captions: string;
 };
 
 export type ProblemContent = SectionIntro & {
@@ -82,16 +129,30 @@ export type CtaContent = {
 
 export type HomeContent = {
   meta: PageMeta;
-  hero: HeroContent;
+  hook: HookContent;
   problem: ProblemContent;
-  pullQuote: { parts: QuotePart[]; caption: string };
-  ecosystem: SectionIntro & { pillars: Item[] };
-  capabilityStack: SectionIntro & {
-    ring: { value: string; label: string };
-    columns: CapabilityColumn[];
+  curated: SectionIntro & {
+    tiles: Item[];
+    stats: Stat[];
+    programmesLink: Link;
   };
-  beyondTraining: SectionIntro & { items: LinkedItem[] };
-  cta: CtaContent;
+  howItWorks: SectionIntro & { steps: Item[]; note: string };
+  expertise: SectionIntro & {
+    show: boolean;
+    note: string;
+    cards: ExpertCard[];
+    logosHeading: string;
+    showLogos: boolean;
+    logos: ImageAsset[];
+  };
+  demo: SectionIntro & { show: boolean; media: DemoVideo; cta: Link };
+  testimonials: SectionIntro & { show: boolean; items: Testimonial[] };
+  join: {
+    heading: string;
+    body: string;
+    doors: (Link & { eyebrow: string; body: string })[];
+    secondary: Link;
+  };
 };
 
 export type Person = {
@@ -126,6 +187,11 @@ export type ProgrammesContent = {
   intro: string[];
   areas: SectionIntro & { items: string[]; note: string };
   programmes: SectionIntro & { items: Programme[] };
+  capabilityStack: SectionIntro & {
+    ring: { value: string; label: string };
+    columns: CapabilityColumn[];
+  };
+  beyondTraining: SectionIntro & { items: LinkedItem[] };
   cta: CtaContent;
 };
 
@@ -224,6 +290,8 @@ export type SiteContent = {
   logo: ImageAsset;
   nav: Link[];
   signIn: Link;
+  /** Amber button at the right of the header. */
+  headerCta: Link;
   skipLinkLabel: string;
   contact: {
     email: string;

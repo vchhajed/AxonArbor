@@ -1,7 +1,7 @@
 "use client";
 
 import { useInView, useMotionValueEvent, useScroll } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useIsEditing } from "@/components/editing-context";
 import { Container } from "@/components/layout/Container";
 import { MotionProvider } from "@/components/motion/MotionProvider";
@@ -9,23 +9,21 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import type { ProblemContent } from "@/content/types";
 import { VendorConstellation } from "./VendorConstellation";
 
-const INTRO_END = 0.1;
-const RESOLVE_AT = 0.72;
+/** Scroll progress through the pinned section at which the vendors resolve into one ring. */
+const RESOLVE_AT = 0.4;
+/** Where one scroll lands: the top of the section, or well inside the resolved half. */
+const SCATTERED_PROGRESS = 0;
+const RESOLVED_PROGRESS = 0.75;
 
-/** Maps scroll progress through the pinned section to a story stage. */
-function stageFor(progress: number, steps: number) {
-  if (progress < INTRO_END) return -1;
-  if (progress >= RESOLVE_AT) return steps;
-  const span = (RESOLVE_AT - INTRO_END) / steps;
-  return Math.min(steps - 1, Math.floor((progress - INTRO_END) / span));
-}
+/** How long the one-step smooth scroll takes; wheel input is swallowed meanwhile. */
+const STEP_LOCK_MS = 900;
 
 /**
  * "The Hidden Cost of Fragmented Learning".
  *
- * Desktop: the section is pinned while the visitor scrolls. Each pain point
- * lights up the vendors it affects, then the scattered vendors resolve into
- * one ring around Axon Arbor.
+ * Desktop: the section is pinned. Hovering a pain point opens it and lights
+ * up the vendors it affects. A single scroll then resolves the scattered
+ * vendors into one ring around Axon Arbor; the next scroll moves on.
  *
  * Mobile: no pinning. A scattered diagram opens the section and a connected
  * one closes it, resolving as it scrolls into view.
@@ -35,21 +33,56 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
   const sectionRef = useRef<HTMLElement>(null);
   const mobileResolvedRef = useRef<HTMLDivElement>(null);
   const mobileResolved = useInView(mobileResolvedRef, { once: true, amount: 0.6 });
-  const [stage, setStage] = useState(-1);
+  const [resolvedByScroll, setResolvedByScroll] = useState(false);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const resolvedRef = useRef(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
   useMotionValueEvent(scrollYProgress, "change", (p) => {
-    setStage(stageFor(p, painPoints.length));
+    const next = p >= RESOLVE_AT;
+    resolvedRef.current = next;
+    setResolvedByScroll(next);
   });
 
   // In the admin editor the story is laid out flat so every item can be clicked.
   const editing = useIsEditing();
-  const resolved = !editing && stage === painPoints.length;
-  // Out-of-range stages (end of the story, or fewer pain points after an edit) highlight nothing.
-  const highlighted = !resolved ? (painPoints[stage]?.vendors ?? []) : [];
+
+  // While pinned, one wheel gesture flips between scattered and resolved.
+  // Scrolling past either end, the keyboard and the scrollbar behave normally.
+  useEffect(() => {
+    if (editing) return;
+    const pinQuery = window.matchMedia("(min-width: 64rem) and (min-height: 40rem)");
+    let lockedUntil = 0;
+
+    function onWheel(e: WheelEvent) {
+      const el = sectionRef.current;
+      if (!el || !pinQuery.matches || e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+      const rect = el.getBoundingClientRect();
+      const pinned = rect.top <= 1 && rect.bottom >= window.innerHeight - 1;
+      if (!pinned) return;
+      if (performance.now() < lockedUntil) {
+        e.preventDefault();
+        return;
+      }
+      if (Math.abs(e.deltaY) < 4) return;
+      const down = e.deltaY > 0;
+      if (down === resolvedRef.current) return; // let the page scroll on past the story
+      e.preventDefault();
+      lockedUntil = performance.now() + STEP_LOCK_MS;
+      const top = rect.top + window.scrollY;
+      const range = el.offsetHeight - window.innerHeight;
+      window.scrollTo({ top: top + range * (down ? RESOLVED_PROGRESS : SCATTERED_PROGRESS), behavior: "smooth" });
+    }
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [editing]);
+  const resolved = !editing && resolvedByScroll;
+  const current = !resolved && hovered !== null ? hovered : -1;
+  const highlighted = !resolved ? (painPoints[current]?.vendors ?? []) : [];
 
   return (
     <MotionProvider>
@@ -57,7 +90,7 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
         ref={sectionRef}
         id="problem"
         aria-labelledby="problem-heading"
-        className={editing ? "relative" : "relative pin:h-[340vh]"}
+        className={editing ? "relative" : "relative pin:h-[200vh]"}
       >
         <div
           className={
@@ -90,18 +123,20 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
               {/* On desktop the list and the resolution share one grid cell and crossfade. */}
               <div className="mt-12 lg:mt-8 lg:grid">
                 <ol
+                  onMouseLeave={() => setHovered(null)}
                   className={`border-t border-grey-200 transition-opacity duration-500 ${editing ? "" : "lg:[grid-area:1/1]"} ${
                     resolved ? "lg:pointer-events-none lg:opacity-0" : ""
                   }`}
                 >
                   {painPoints.map((point, i) => {
-                    const active = stage === i;
+                    const active = current === i;
                     const open = editing || active;
-                    const dimmed = !editing && stage >= 0 && !active;
+                    const dimmed = !editing && current >= 0 && !active;
                     return (
                       <li
                         key={i}
-                        className={`border-b border-grey-200 py-5 transition-colors duration-500 lg:py-3.5 ${
+                        onMouseEnter={() => setHovered(i)}
+                        className={`border-b border-grey-200 py-5 transition-colors duration-500 lg:cursor-pointer lg:py-3.5 ${
                           dimmed ? "lg:text-grey-400" : ""
                         }`}
                       >
