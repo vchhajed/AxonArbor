@@ -56,10 +56,6 @@ const LABELS: Record<string, string> = {
   secondary: "Second link",
   headerCta: "Header button",
   problem: "The problem section",
-  pullQuote: "Big quote",
-  parts: "Quote pieces",
-  tone: "Style",
-  caption: "Caption",
   ecosystem: "One Partner section",
   pillars: "Pillars",
   capabilityStack: "360 Capability Stack",
@@ -160,7 +156,6 @@ export function isLongText(key: string | number, value: string) {
 export const NON_DISPLAY_KEYS = new Set([
   "href",
   "src",
-  "tone",
   "id",
   "path",
   "phoneHref",

@@ -44,11 +44,6 @@ export type PainPoint = Item & {
   vendors: number[];
 };
 
-export type QuotePart = {
-  text: string;
-  tone?: "heavy" | "light";
-};
-
 export type CapabilityColumn = {
   title: string;
   items: string[];
@@ -136,7 +131,6 @@ export type HomeContent = {
   meta: PageMeta;
   hook: HookContent;
   problem: ProblemContent;
-  pullQuote: { parts: QuotePart[]; caption: string };
   curated: SectionIntro & {
     tiles: Item[];
     stats: Stat[];

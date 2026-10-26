@@ -3,17 +3,9 @@ import { Reveal } from "@/components/motion/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { DemoVideo as DemoMedia, HomeContent } from "@/content/types";
+import { DemoPlayer as Player } from "./DemoPlayer";
 
-function Player({ src, poster, captions, className }: { src: string; poster: string; captions: string; className: string }) {
-  return (
-    <video controls playsInline preload="none" poster={poster || undefined} className={className}>
-      <source src={src} type="video/mp4" />
-      {captions && <track kind="captions" src={captions} srcLang="en-GB" label="English" default />}
-    </video>
-  );
-}
-
-/** Fold 5: the product demo, 16:9 on larger screens and 9:16 on phones. Loads only when played. */
+/** The product demo, 16:9 on larger screens and 9:16 on phones. Plays muted once on screen. */
 export function DemoVideo({ eyebrow, heading, lede, media, cta }: HomeContent["demo"]) {
   const m: DemoMedia = media;
   const mobile = m.videoMobile || m.video;
@@ -29,7 +21,7 @@ export function DemoVideo({ eyebrow, heading, lede, media, cta }: HomeContent["d
               src={m.video}
               poster={m.poster}
               captions={m.captions}
-              className="hidden aspect-video w-full bg-grey-900 sm:block"
+              className="hidden aspect-video w-full sm:block"
             />
           )}
           {mobile && (
@@ -37,7 +29,7 @@ export function DemoVideo({ eyebrow, heading, lede, media, cta }: HomeContent["d
               src={mobile}
               poster={m.posterMobile || m.poster}
               captions={m.captions}
-              className="mx-auto aspect-[9/16] w-full max-w-sm bg-grey-900 sm:hidden"
+              className="mx-auto aspect-[9/16] w-full max-w-sm sm:hidden"
             />
           )}
         </div>

@@ -84,16 +84,6 @@ export const home: HomeContent = {
     hubLabel: "Axon Arbor",
   },
 
-  pullQuote: {
-    parts: [
-      { text: "Learning becomes operationally " },
-      { text: "heavy", tone: "heavy" },
-      { text: " but strategically " },
-      { text: "light.", tone: "light" },
-    ],
-    caption: "The hidden cost of fragmented learning",
-  },
-
   curated: {
     eyebrow: "Not crowded but curated",
     heading: "One partner. A curated network. The right expert for every brief.",
