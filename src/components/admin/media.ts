@@ -8,7 +8,7 @@ export type MediaItem = { name: string; src: string; width: number; height: numb
 
 /** Images that ship with the site, so admins can reuse them. */
 export const BUILT_IN_IMAGES: MediaItem[] = [
-  { name: "Logo", src: "/brand/logo.png", width: 690, height: 615 },
+  { name: "Logo", src: "/brand/logo-gold.png", width: 604, height: 576 },
   { name: "Richa Singh", src: "/people/richa.webp", width: 640, height: 800 },
   { name: "Suresh Tripathi", src: "/people/suresh.webp", width: 480, height: 600 },
   { name: "Shailesh Singh", src: "/people/shailesh.webp", width: 480, height: 600 },

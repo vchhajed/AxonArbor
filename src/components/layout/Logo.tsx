@@ -11,23 +11,24 @@ type LogoProps = {
 };
 
 /**
- * The brand mark is used unaltered. The default file has generous built-in
- * padding, so the frame crops into it with CSS only.
+ * The brand mark, shown whole at its own proportions (no cropping or
+ * stretching). `size` is the height; the width follows the file.
  */
-export function LogoMark({ logo, size = 44 }: { logo: ImageAsset; size?: number }) {
+export function LogoMark({ logo, size = 40 }: { logo: ImageAsset; size?: number }) {
   if (!logo.src) return null;
+  const w = logo.width || 604;
+  const h = logo.height || 576;
   return (
-    <span className="relative block shrink-0 overflow-hidden" style={{ width: size, height: size }}>
-      <Image
-        src={logo.src}
-        alt=""
-        width={logo.width || 690}
-        height={logo.height || 615}
-        sizes={`${Math.round(size * 1.6)}px`}
-        loading="eager"
-        className="absolute inset-0 h-full w-full origin-[50%_46%] scale-[1.55] object-cover"
-      />
-    </span>
+    <Image
+      src={logo.src}
+      alt=""
+      width={w}
+      height={h}
+      sizes={`${Math.round((size * w) / h) * 2}px`}
+      loading="eager"
+      className="block shrink-0 object-contain"
+      style={{ height: size, width: "auto" }}
+    />
   );
 }
 

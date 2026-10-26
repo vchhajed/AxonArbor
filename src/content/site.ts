@@ -10,10 +10,10 @@ export const site: SiteContent = {
   description:
     "Axon Arbor is a curated network of people development experts, based in Noida, India. One partner for assessments, workshops, coaching, speakers, offsites and culture.",
   logo: {
-    src: "/brand/logo.png",
+    src: "/brand/logo-gold.png",
     alt: "Axon Arbor",
-    width: 690,
-    height: 615,
+    width: 604,
+    height: 576,
   },
   nav: [
     { label: "Home", href: "/" },
