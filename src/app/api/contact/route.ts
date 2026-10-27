@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { emailEnquiry } from "@/lib/enquiry-email";
 import { normaliseContact, validateContact } from "@/lib/contact-validation";
 import { TABLES } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -43,6 +45,13 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "Could not send your message." }, { status: 503 });
   }
 
-  // TODO: also notify the team by email.
+  // Tell the team by email once the visitor has their answer, so a slow or
+  // failed email never holds up or fails the form. The enquiry is already saved.
+  const adminUrl = new URL("/admin/enquiries", request.url).toString();
+  after(() =>
+    emailEnquiry(data, adminUrl).catch((e) =>
+      console.error("[contact] Enquiry email failed:", (e as Error).message, { email: data.email }),
+    ),
+  );
   return Response.json({ ok: true });
 }
