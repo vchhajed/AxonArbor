@@ -4,14 +4,14 @@ export const home: HomeContent = {
   meta: {
     title: "Curated people development experts",
     description:
-      "Axon Arbor brings all your people development needs under one roof: a curated network of experts with two decades of experience or more, matched to your brief. Join the waitlist.",
+      "Axon Arbor brings all your people development needs under one roof: a curated list of trainers, facilitators, coaches and speakers with two decades of experience or more, matched to your brief. Join the waitlist.",
     path: "/",
   },
 
   hook: {
     eyebrow: ["Learning", "Leadership", "Belonging"],
     heading: ["Not crowded.", "Curated."],
-    lede: "Axon Arbor brings all your people development needs under one roof: a curated network of experts with two decades of experience or more, matched to your brief.",
+    lede: "Axon Arbor brings all your people development needs under one roof: a curated list of trainers, facilitators, coaches and speakers with two decades of experience or more, matched to your brief.",
     backdrop: {
       video: "/video/hero-close-16x9.mp4",
       videoMobile: "/video/hero-close-9x16.mp4",
@@ -36,7 +36,7 @@ export const home: HomeContent = {
       backdrop: { video: "", videoMobile: "", poster: "", posterMobile: "" },
     },
     waitlist: { label: "Join the waitlist", href: "#join" },
-    trust: ["20+ years’ experience each", "Every expert reviewed", "Woman-owned"],
+    trust: ["Woman-owned"],
   },
 
   problem: {
@@ -168,13 +168,13 @@ export const home: HomeContent = {
     show: true,
     eyebrow: "See it in action",
     heading: "See how it works in one minute.",
-    lede: "Narrated by our founder, Richa Singh.",
+    lede: "",
     media: {
       video: "/video/demo-16x9.mp4",
       videoMobile: "/video/demo-9x16.mp4",
       poster: "/video/demo-16x9.jpg",
       posterMobile: "/video/demo-9x16.jpg",
-      captions: "/video/demo-captions.vtt",
+      captions: "",
     },
     cta: { label: "Join the waitlist", href: "#join" },
   },

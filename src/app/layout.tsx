@@ -60,6 +60,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
+      data-scroll-behavior="smooth"
       lang="en-GB"
       className={`${gelasio.variable} ${gelasioItalic.variable} ${inter.variable} ${montserrat.variable} antialiased`}
     >
