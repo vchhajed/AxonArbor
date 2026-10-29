@@ -8,6 +8,34 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { AboutContent } from "@/content/types";
 
+/**
+ * The facilitator network as a slow, endless strip of small portraits. Names
+ * and roles stay out of the page on purpose: Richa wants the network shown
+ * anonymously. Short lists are repeated so the strip always fills the width.
+ */
+function FacilitatorStrip({ photos }: { photos: string[] }) {
+  if (photos.length === 0) return null;
+  const filled: string[] = [];
+  while (filled.length < 14) filled.push(...photos);
+  const row = (hidden: boolean) => (
+    <ul aria-hidden={hidden || undefined} className="ticker-row flex shrink-0 items-center gap-4 pr-4">
+      {filled.map((src, i) => (
+        <li key={i} className="relative h-32 w-26 shrink-0 overflow-hidden bg-grey-100 sm:h-36 sm:w-29">
+          <Image src={src} alt="" fill sizes="116px" className="object-cover grayscale" />
+        </li>
+      ))}
+    </ul>
+  );
+  return (
+    <div className="mt-14 overflow-hidden" role="img" aria-label="Portraits of facilitators in the Axon Arbor network">
+      <div className="photo-strip-track flex w-max">
+        {row(false)}
+        {row(true)}
+      </div>
+    </div>
+  );
+}
+
 export function AboutView({ about }: { about: AboutContent }) {
   const { header, founder, advisors, facilitators, partners, cta } = about;
   return (
@@ -76,14 +104,8 @@ export function AboutView({ about }: { about: AboutContent }) {
           <Reveal>
             <SectionIntro id="facilitators-heading" eyebrow={facilitators.eyebrow} heading={facilitators.heading} />
           </Reveal>
-          <ul className="mt-14 grid gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-            {facilitators.people.map((person, i) => (
-              <Reveal as="li" key={i} delay={(i % 3) * 0.08}>
-                <PersonCard person={person} />
-              </Reveal>
-            ))}
-          </ul>
         </Container>
+        <FacilitatorStrip photos={facilitators.people.map((p) => p.image?.src).filter((src): src is string => !!src)} />
       </section>
 
       <section id="partners" aria-labelledby="partners-heading" className="scroll-mt-20 border-t border-grey-200 py-20 sm:py-28">

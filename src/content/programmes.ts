@@ -38,7 +38,7 @@ export const programmes: ProgrammesContent = {
       "Team Building",
       "CXO Offsites",
     ],
-    note: "We also run employee events, bring in external speakers and create memorable campaigns for employee communication.",
+    note: "",
   },
 
   programmes: {
@@ -81,6 +81,7 @@ export const programmes: ProgrammesContent = {
   },
 
   capabilityStack: {
+    show: false,
     eyebrow: "Our offerings",
     heading: "The Axon Arbor 360 Capability Stack",
     lede: "Four layers that work as one system, from understanding where you are today to changing how your organisation works.",

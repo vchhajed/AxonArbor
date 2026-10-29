@@ -3,6 +3,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { BeyondTraining } from "@/components/sections/BeyondTraining";
 import { CapabilityStack } from "@/components/sections/CapabilityStack";
 import { CTABand } from "@/components/sections/CTABand";
+import { Hideable } from "@/components/sections/Hideable";
 import { PageHeader } from "@/components/sections/PageHeader";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { ProgrammesContent } from "@/content/types";
@@ -39,10 +40,13 @@ export function ProgrammesView({ programmes }: { programmes: ProgrammesContent }
                 </li>
               ))}
             </ul>
-            <p className="mt-8 leading-relaxed text-grey-600">{areas.note}</p>
+            {areas.note && <p className="mt-8 leading-relaxed text-grey-600">{areas.note}</p>}
           </Reveal>
         </Container>
       </section>
+
+
+      <BeyondTraining {...beyondTraining} />
 
       <section aria-labelledby="signature-heading" className="border-t border-grey-200 bg-grey-50 py-20 sm:py-28">
         <Container>
@@ -84,8 +88,9 @@ export function ProgrammesView({ programmes }: { programmes: ProgrammesContent }
         </Container>
       </section>
 
-      <CapabilityStack {...capabilityStack} />
-      <BeyondTraining {...beyondTraining} />
+      <Hideable show={capabilityStack.show}>
+        <CapabilityStack {...capabilityStack} />
+      </Hideable>
 
       <CTABand {...cta} />
     </>
