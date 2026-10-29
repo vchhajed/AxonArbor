@@ -188,6 +188,7 @@ export type ProgrammesContent = {
   areas: SectionIntro & { items: string[]; note: string };
   programmes: SectionIntro & { items: Programme[] };
   capabilityStack: SectionIntro & {
+    show: boolean;
     ring: { value: string; label: string };
     columns: CapabilityColumn[];
   };

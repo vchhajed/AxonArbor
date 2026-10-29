@@ -20,7 +20,7 @@ export const home: HomeContent = {
     },
     hire: {
       eyebrow: "For organisations",
-      label: "I want to hire an expert",
+      label: "I want to hire a coach or facilitator",
       href: "/join/company",
       backdrop: {
         video: "/video/hero-relief-16x9.mp4",
@@ -87,7 +87,7 @@ export const home: HomeContent = {
   curated: {
     eyebrow: "Not crowded but curated",
     heading: "One partner. A curated network. The right expert for every brief.",
-    lede: "A hand-picked network of domain and subject matter experts, each with two decades or more of experience. We understand your need, recommend the right expert, and stay accountable through delivery.",
+    lede: "A handpicked network of domain and subject matter experts who have spent decades honing their knowledge and skills. We understand your need, recommend the right expert, and stay accountable through delivery.",
     tiles: [
       { title: "Curated, not crowded", body: "Every expert is reviewed by people who know this market. No 1,000-name LinkedIn search.", icon: "" },
       { title: "The Axon Arbor promise", body: "One standard of excellence on every engagement, and one team accountable for it.", icon: "" },
@@ -108,7 +108,7 @@ export const home: HomeContent = {
   howItWorks: {
     eyebrow: "How it works",
     heading: "From brief to the right expert, with one partner throughout.",
-    lede: "For organisations. Five steps, and Axon Arbor stays with you at every one.",
+    lede: "For organisations. Five steps, and Axon Arbor stays with you at every step.",
     steps: [
       { title: "Tell us about your organisation", body: "Your team size, location and what you’re looking to solve.", icon: "" },
       { title: "Describe what you need", body: "In your own words, for example “team building for 40 mid-level managers in Pune”.", icon: "" },
@@ -123,7 +123,7 @@ export const home: HomeContent = {
     show: true,
     eyebrow: "Depth of expertise",
     heading: "Depth you can see.",
-    lede: "Matches are shown on expertise, not on names, so you judge the fit first.",
+    lede: "",
     note: "Illustrative profiles. Real matches are anonymised the same way.",
     cards: [
       {

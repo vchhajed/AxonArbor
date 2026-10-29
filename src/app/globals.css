@@ -175,6 +175,11 @@
     animation-play-state: paused;
   }
 
+  /* Keeps moving on hover too: the strip is not clickable. */
+  .photo-strip-track {
+    animation: ticker 50s linear infinite;
+  }
+
   @supports (animation-timeline: view()) {
     .img-reveal {
       animation: wipe-in linear both;
@@ -205,6 +210,12 @@
     flex-wrap: wrap;
     justify-content: center;
     row-gap: 0.75rem;
+  }
+
+  .photo-strip-track {
+    display: block;
+    width: auto;
+    padding-inline: 1.25rem;
   }
 
   .ticker-row[aria-hidden="true"] {
