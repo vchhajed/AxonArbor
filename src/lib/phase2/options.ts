@@ -22,6 +22,9 @@ export const EXPERTISE = [
   "Communications & HR Branding",
   "Hospitality & Service Excellence",
   "Sales Training",
+  "Executive Presence & Communication",
+  "Organisation Development",
+  "Corporate Finance",
 ] as const;
 
 export const CITIES = [

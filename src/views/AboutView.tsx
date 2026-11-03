@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 import { Reveal } from "@/components/motion/Reveal";
@@ -28,7 +29,8 @@ function FacilitatorStrip({ photos }: { photos: string[] }) {
   );
   return (
     <div className="mt-14 overflow-hidden" role="img" aria-label="Portraits of facilitators in the Axon Arbor network">
-      <div className="photo-strip-track flex w-max">
+      {/* About 3.5s per portrait keeps the same gentle pace however many there are. */}
+      <div className="photo-strip-track flex w-max" style={{ "--strip-duration": `${filled.length * 3.5}s` } as CSSProperties}>
         {row(false)}
         {row(true)}
       </div>

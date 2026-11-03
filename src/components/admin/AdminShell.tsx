@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/edit/home", label: "Edit website", icon: "M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" },
   { href: "/admin/enquiries", label: "Enquiries", icon: "M4 6h16v12H4zM4 7l8 6 8-6" },
   { href: "/admin/consultants", label: "Consultants", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" },
+  { href: "/admin/network", label: "Trainer network", icon: "M7 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM17 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" },
   { href: "/admin/companies", label: "Companies", icon: "M4 21V5h10v16M14 9h6v12M7 9h4M7 13h4M7 17h4M4 21h17" },
   { href: "/admin/media", label: "Images", icon: "M4 5h16v14H4zM4 15l5-5 4 4 3-3 4 4M15 9h.01" },
   { href: "/admin/history", label: "Publish history", icon: "M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7M3 4v4h4" },

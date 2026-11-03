@@ -177,7 +177,7 @@
 
   /* Keeps moving on hover too: the strip is not clickable. */
   .photo-strip-track {
-    animation: ticker 50s linear infinite;
+    animation: ticker var(--strip-duration, 50s) linear infinite;
   }
 
   @supports (animation-timeline: view()) {
