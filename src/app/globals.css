@@ -218,6 +218,10 @@
     padding-inline: 1.25rem;
   }
 
+  .photo-strip-track .ticker-row {
+    row-gap: 2rem;
+  }
+
   .ticker-row[aria-hidden="true"] {
     display: none;
   }

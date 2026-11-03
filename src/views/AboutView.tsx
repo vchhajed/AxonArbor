@@ -9,28 +9,34 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { AboutContent } from "@/content/types";
 
+type StripPerson = { src: string; name: string; role?: string };
+
 /**
- * The facilitator network as a slow, endless strip of small portraits. Names
- * and roles stay out of the page on purpose: Richa wants the network shown
- * anonymously. Short lists are repeated so the strip always fills the width.
+ * The facilitator network as a slow, endless strip of portraits, each with
+ * the person's name and speciality. Short lists are repeated so the strip
+ * always fills the width; the second copy is hidden from screen readers.
  */
-function FacilitatorStrip({ photos }: { photos: string[] }) {
-  if (photos.length === 0) return null;
-  const filled: string[] = [];
-  while (filled.length < 14) filled.push(...photos);
+function FacilitatorStrip({ people }: { people: StripPerson[] }) {
+  if (people.length === 0) return null;
+  const filled: StripPerson[] = [];
+  while (filled.length < 12) filled.push(...people);
   const row = (hidden: boolean) => (
-    <ul aria-hidden={hidden || undefined} className="ticker-row flex shrink-0 items-center gap-4 pr-4">
-      {filled.map((src, i) => (
-        <li key={i} className="relative h-32 w-26 shrink-0 overflow-hidden bg-grey-100 sm:h-36 sm:w-29">
-          <Image src={src} alt="" fill sizes="116px" className="object-cover grayscale" />
+    <ul aria-hidden={hidden || undefined} className="ticker-row flex shrink-0 items-start gap-5 pr-5">
+      {filled.map((p, i) => (
+        <li key={i} className="w-36 shrink-0 sm:w-40">
+          <div className="relative aspect-[4/5] overflow-hidden bg-grey-100">
+            <Image src={p.src} alt="" fill sizes="160px" className="object-cover grayscale" />
+          </div>
+          <p className="mt-3 font-serif text-base leading-snug tracking-tight sm:text-lg">{p.name}</p>
+          {p.role && <p className="mt-1 text-xs leading-snug text-grey-600 sm:text-sm">{p.role}</p>}
         </li>
       ))}
     </ul>
   );
   return (
-    <div className="mt-14 overflow-hidden" role="img" aria-label="Portraits of facilitators in the Axon Arbor network">
-      {/* About 3.5s per portrait keeps the same gentle pace however many there are. */}
-      <div className="photo-strip-track flex w-max" style={{ "--strip-duration": `${filled.length * 3.5}s` } as CSSProperties}>
+    <div className="mt-14 overflow-hidden">
+      {/* About 4.5s per person keeps the strip slow enough to read the names. */}
+      <div className="photo-strip-track flex w-max" style={{ "--strip-duration": `${filled.length * 4.5}s` } as CSSProperties}>
         {row(false)}
         {row(true)}
       </div>
@@ -107,7 +113,9 @@ export function AboutView({ about }: { about: AboutContent }) {
             <SectionIntro id="facilitators-heading" eyebrow={facilitators.eyebrow} heading={facilitators.heading} />
           </Reveal>
         </Container>
-        <FacilitatorStrip photos={facilitators.people.map((p) => p.image?.src).filter((src): src is string => !!src)} />
+        <FacilitatorStrip
+          people={facilitators.people.flatMap((p) => (p.image?.src ? [{ src: p.image.src, name: p.name, role: p.role }] : []))}
+        />
       </section>
 
       <section id="partners" aria-labelledby="partners-heading" className="scroll-mt-20 border-t border-grey-200 py-20 sm:py-28">
