@@ -82,7 +82,7 @@ export const about: AboutContent = {
       },
       {
         name: "Alpa Kapadia",
-        role: "",
+        role: "Shadow Mastery & Executive Coaching",
         bio: "",
         image: network("alpa-kapadia", "Alpa Kapadia"),
       },
