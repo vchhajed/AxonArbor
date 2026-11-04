@@ -86,7 +86,7 @@ export function CompanySignUpForm() {
         <fieldset className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
           <legend className="mb-6 font-serif text-2xl">Your company</legend>
           <TextField name="company_name" label="Company name" autoComplete="organization" required error={fe.company_name} />
-          <TextField name="website" label="Website" type="url" autoComplete="url" />
+          <TextField name="website" label="Website" type="url" autoComplete="url" error={fe.website} />
           <TextField name="industry" label="Industry" hint="e.g. Hospitality, BFSI, Manufacturing" />
           <SelectField name="city" label="Head office" options={CITIES} error={fe.city} />
           <SelectField name="employee_count" label="Number of employees" options={EMPLOYEE_BANDS} error={fe.employee_count} />
@@ -104,7 +104,7 @@ export function CompanySignUpForm() {
             error={fe.email}
             hint="Your company address. Personal addresses (Gmail, Yahoo, Outlook…) can’t be used."
           />
-          <TextField name="phone" label="Phone" type="tel" autoComplete="tel" />
+          <TextField name="phone" label="Phone" type="tel" autoComplete="tel" error={fe.phone} />
           <TextField
             name="password"
             label="Password"

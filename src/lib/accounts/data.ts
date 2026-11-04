@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/admin";
-import { ACCOUNT_COOKIE, readAccountToken, type AccountRole } from "./session";
+import { ACCOUNT_COOKIE, passwordVersion, readAccountToken, type AccountRole } from "./session";
 
 export const ACCOUNT_TABLES = {
   accounts: "axon_arbor_accounts",
@@ -71,12 +71,14 @@ export async function getCurrentAccount(): Promise<Account | null> {
   if (!session) return null;
   const { data } = await createServiceClient()
     .from(ACCOUNT_TABLES.accounts)
-    .select(ACCOUNT_COLUMNS)
+    .select(`${ACCOUNT_COLUMNS}, password_hash`)
     .eq("id", session.id)
     .maybeSingle();
-  const account = data as Account | null;
-  // Suspended accounts (and deleted ones) lose access immediately.
-  if (!account || account.status === "suspended" || account.role !== session.role) return null;
+  if (!data) return null;
+  const { password_hash, ...account } = data as Account & { password_hash: string };
+  // Suspended and deleted accounts lose access immediately, as do sessions from before a password change.
+  if (account.status === "suspended" || account.role !== session.role) return null;
+  if (passwordVersion(password_hash) !== session.pv) return null;
   return account;
 }
 

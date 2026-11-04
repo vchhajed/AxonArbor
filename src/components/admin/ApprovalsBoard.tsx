@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- consultant photos uploaded at runtime */
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { resetAccountPassword, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
+import { deleteAccount, resetAccountPassword, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
 import type { AdminAccountRow } from "@/lib/accounts/admin";
 import type { ProfileStatus } from "@/lib/accounts/data";
 import { AdminButton, ConfirmDialog, formatDate, Toast } from "./ui";
@@ -46,7 +46,27 @@ type Pending =
   | { kind: "company"; row: AdminAccountRow; decision: "approve" | "reject" }
   | { kind: "profile"; row: AdminAccountRow; decision: "approve" | "changes" | "remove" | "keep" }
   | { kind: "suspend"; row: AdminAccountRow; suspended: boolean }
-  | { kind: "reset"; row: AdminAccountRow };
+  | { kind: "reset"; row: AdminAccountRow }
+  | { kind: "delete"; row: AdminAccountRow };
+
+/** Spreadsheet export; consultant columns match the Excel template. */
+function toCsv(rows: AdminAccountRow[], role: "consultant" | "company") {
+  const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const header =
+    role === "consultant"
+      ? ["full_name", "email", "phone", "city", "expertise_1", "expertise_2", "expertise_3", "years_experience", "industries", "delivery_mode", "languages", "bio", "linkedin_url", "certifications", "notable_clients", "day_rate_band", "availability", "photo", "consent", "profile_status", "account_status", "signed_up", "last_sign_in"]
+      : ["company_name", "website", "industry", "city", "employee_count", "contact_name", "contact_role", "email", "phone", "email_domain", "account_status", "signed_up", "last_sign_in"];
+  const lines = rows.map((r) => {
+    const c = r.consultant;
+    const co = r.company;
+    const values =
+      role === "consultant"
+        ? [c?.full_name, r.email, c?.phone, c?.city, c?.expertise[0], c?.expertise[1], c?.expertise[2], c?.years_experience, c?.industries, c?.delivery_mode, c?.languages, c?.bio, c?.linkedin_url, c?.certifications, c?.notable_clients, c?.day_rate_band, c?.availability, c?.photo_url, c?.consent ? "Yes" : "No", c?.profile_status, r.status, r.created_at, r.last_login_at]
+        : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.phone, co?.email_domain, r.status, r.created_at, r.last_login_at];
+    return values.map(escape).join(",");
+  });
+  return [header.join(","), ...lines].join("\n");
+}
 
 const needsReview = (r: AdminAccountRow) =>
   (r.role === "company" && r.status === "pending") ||
@@ -170,14 +190,17 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
     if (!pending) return;
     setBusy(true);
     const p = pending;
-    const result =
+    const run = () =>
       p.kind === "company"
-        ? await reviewCompany(p.row.id, p.decision, note)
+        ? reviewCompany(p.row.id, p.decision, note)
         : p.kind === "profile"
-          ? await reviewProfile(p.row.id, p.decision, note)
+          ? reviewProfile(p.row.id, p.decision, note)
           : p.kind === "suspend"
-            ? await setAccountSuspended(p.row.id, p.suspended)
-            : await resetAccountPassword(p.row.id);
+            ? setAccountSuspended(p.row.id, p.suspended)
+            : p.kind === "delete"
+              ? deleteAccount(p.row.id)
+              : resetAccountPassword(p.row.id);
+    const result = await run().catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
     setBusy(false);
     if (!result.ok) {
       setToast({ message: result.error, tone: "error" });
@@ -191,6 +214,15 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
   }
 
   const dialog = pending && describe(pending);
+
+  function download() {
+    const blob = new Blob(["﻿" + toCsv(visible, role)], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `axon-arbor-${role === "consultant" ? "consultants" : "companies"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 
   return (
     <div className="mt-8">
@@ -217,6 +249,9 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
           aria-label="Search accounts"
           className="min-w-56 flex-1 border border-grey-200 bg-paper px-4 py-2 text-sm focus:border-ink focus:outline-none"
         />
+        <AdminButton size="sm" onClick={download} disabled={visible.length === 0}>
+          Download CSV
+        </AdminButton>
       </div>
 
       {visible.length === 0 ? (
@@ -303,6 +338,9 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
                       <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "suspend", row: r, suspended: r.status !== "suspended" })}>
                         {r.status === "suspended" ? "Restore access" : "Pause account"}
                       </AdminButton>
+                      <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "delete", row: r })}>
+                        Delete account
+                      </AdminButton>
                     </div>
                   </div>
                 )}
@@ -370,6 +408,12 @@ function describe(p: Pending): { title: string; body: string; confirm: string; n
       return p.suspended
         ? { title: `Pause ${who}?`, body: "They’ll be signed out and can’t sign in until you restore access.", confirm: "Pause account" }
         : { title: `Restore ${who}?`, body: "They’ll be able to sign in again, with an approved account.", confirm: "Restore access" };
+    case "delete":
+      return {
+        title: `Delete ${who} permanently?`,
+        body: "This erases the account, profile and any photos. It can’t be undone. Use this when someone asks for their data to be deleted.",
+        confirm: "Delete permanently",
+      };
     case "reset":
       return { title: `Reset ${who}’s password?`, body: "Their current password stops working. You’ll get a temporary one to send them.", confirm: "Reset password" };
   }

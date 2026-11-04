@@ -194,18 +194,19 @@ export function RemovalButton() {
 
 export function CompanyProfileForm({ company }: { company: CompanyProfile }) {
   const [state, action, pending] = useActionState(saveCompanyProfile, initial);
+  const fe = state.fieldErrors ?? {};
   return (
     <KeepValues values={state.values}>
-      <form action={action} onSubmit={submitWithoutReset(action)} className="space-y-8">
+      <form action={action} onSubmit={submitWithoutReset(action)} noValidate className="space-y-8">
         <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
-          <TextField name="company_name" label="Company name" required defaultValue={company.company_name} />
-          <TextField name="website" label="Website" type="url" defaultValue={company.website} />
+          <TextField name="company_name" label="Company name" required defaultValue={company.company_name} error={fe.company_name} />
+          <TextField name="website" label="Website" type="url" defaultValue={company.website} error={fe.website} />
           <TextField name="industry" label="Industry" defaultValue={company.industry} />
-          <SelectField name="city" label="Head office" options={CITIES} defaultValue={company.city} />
-          <SelectField name="employee_count" label="Number of employees" options={EMPLOYEE_BANDS} defaultValue={company.employee_count} />
-          <TextField name="contact_name" label="Your name" required defaultValue={company.contact_name} />
+          <SelectField name="city" label="Head office" options={CITIES} defaultValue={company.city} error={fe.city} />
+          <SelectField name="employee_count" label="Number of employees" options={EMPLOYEE_BANDS} defaultValue={company.employee_count} error={fe.employee_count} />
+          <TextField name="contact_name" label="Your name" required defaultValue={company.contact_name} error={fe.contact_name} />
           <TextField name="contact_role" label="Your role" defaultValue={company.contact_role} />
-          <TextField name="phone" label="Phone" type="tel" defaultValue={company.phone} />
+          <TextField name="phone" label="Phone" type="tel" defaultValue={company.phone} error={fe.phone} />
         </div>
         <FormMessage error={state.error} ok={state.ok} />
         <Button type="submit" variant="outline" disabled={pending}>
@@ -219,7 +220,7 @@ export function CompanyProfileForm({ company }: { company: CompanyProfile }) {
 export function ChangePasswordForm() {
   const [state, action, pending] = useActionState(changePassword, initial);
   return (
-    <form action={action} onSubmit={submitWithoutReset(action)} className="max-w-md space-y-6">
+    <form action={action} onSubmit={submitWithoutReset(action)} noValidate className="max-w-md space-y-6">
       <TextField name="current_password" label="Current password" type="password" autoComplete="current-password" required />
       <TextField name="new_password" label="New password" type="password" autoComplete="new-password" required hint="At least 10 characters, with letters and numbers." />
       <FormMessage error={state.error} ok={state.ok} />

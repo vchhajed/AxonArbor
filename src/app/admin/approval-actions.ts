@@ -3,6 +3,7 @@
 import { getAdminSession } from "@/lib/admin/auth";
 import { ACCOUNT_TABLES } from "@/lib/accounts/data";
 import { hashPassword, temporaryPassword } from "@/lib/accounts/password";
+import { MEDIA_BUCKET } from "@/lib/supabase/config";
 
 type Result = { ok: true; password?: string } | { ok: false; error: string };
 
@@ -71,4 +72,16 @@ export async function resetAccountPassword(accountId: string): Promise<Result> {
     .update({ password_hash: await hashPassword(password), updated_at: now() })
     .eq("id", accountId);
   return error ? { ok: false, error: "Couldn’t reset the password." } : { ok: true, password };
+}
+
+/** Permanently deletes an account, its profile (cascade) and any uploaded photos. */
+export async function deleteAccount(accountId: string): Promise<Result> {
+  const a = await admin();
+  if (!a) return { ok: false, error: SESSION_EXPIRED };
+  const folder = `consultants/${accountId}`;
+  const bucket = a.supabase.storage.from(MEDIA_BUCKET);
+  const { data: files } = await bucket.list(folder);
+  if (files?.length) await bucket.remove(files.map((f) => `${folder}/${f.name}`));
+  const { error } = await a.supabase.from(ACCOUNT_TABLES.accounts).delete().eq("id", accountId);
+  return error ? { ok: false, error: "Couldn’t delete the account." } : { ok: true };
 }

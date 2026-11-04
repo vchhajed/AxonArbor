@@ -11,7 +11,8 @@ export const ACCOUNT_COOKIE = "aa_account";
 export const ACCOUNT_SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export type AccountRole = "consultant" | "company";
-type Payload = { typ: "account"; sub: string; role: AccountRole; exp: number };
+/** pv: fingerprint of the password hash, so changing or resetting a password ends every other session. */
+type Payload = { typ: "account"; sub: string; role: AccountRole; pv: string; exp: number };
 
 function key(): string {
   const own = process.env.ACCOUNT_SESSION_SECRET;
@@ -30,13 +31,18 @@ function safeEqual(a: string, b: string) {
   return ab.length === bb.length && timingSafeEqual(ab, bb);
 }
 
-export function createAccountToken(accountId: string, role: AccountRole): string {
-  const payload: Payload = { typ: "account", sub: accountId, role, exp: Math.floor(Date.now() / 1000) + ACCOUNT_SESSION_MAX_AGE };
+/** Short keyed fingerprint of a password hash (never the hash itself). */
+export function passwordVersion(passwordHash: string): string {
+  return createHmac("sha256", key()).update(`pv.${passwordHash}`).digest("base64url").slice(0, 22);
+}
+
+export function createAccountToken(accountId: string, role: AccountRole, passwordHash: string): string {
+  const payload: Payload = { typ: "account", sub: accountId, role, pv: passwordVersion(passwordHash), exp: Math.floor(Date.now() / 1000) + ACCOUNT_SESSION_MAX_AGE };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${sign(body)}`;
 }
 
-export function readAccountToken(token: string | undefined): { id: string; role: AccountRole } | null {
+export function readAccountToken(token: string | undefined): { id: string; role: AccountRole; pv: string } | null {
   if (!token) return null;
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
@@ -45,7 +51,8 @@ export function readAccountToken(token: string | undefined): { id: string; role:
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as Payload;
     if (payload.typ !== "account" || payload.exp < Date.now() / 1000) return null;
     if (payload.role !== "consultant" && payload.role !== "company") return null;
-    return { id: payload.sub, role: payload.role };
+    if (typeof payload.pv !== "string") return null;
+    return { id: payload.sub, role: payload.role, pv: payload.pv };
   } catch {
     return null;
   }

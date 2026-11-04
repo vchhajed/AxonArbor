@@ -12,6 +12,7 @@ import {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
 } from "@/lib/admin/session";
+import { clearAttempts, clientIp, isLimited, recordAttempt } from "@/lib/security/rate-limit";
 import { stripMarkers } from "@/lib/stega";
 import { CONTENT_TAG, MEDIA_BUCKET, MEDIA_FOLDER, RPC, TABLES } from "@/lib/supabase/config";
 
@@ -31,11 +32,15 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
   const username = String(form.get("username") ?? "");
   const password = String(form.get("password") ?? "");
 
+  const limits = [{ key: `admin-login-ip:${await clientIp()}`, max: 10, windowMinutes: 15 }];
+  if (await isLimited(limits)) return { error: "Too many attempts. Please wait 15 minutes and try again." };
   if (!checkCredentials(username, password)) {
+    await recordAttempt(limits.map((l) => l.key));
     // Slow down guessing.
     await new Promise((resolve) => setTimeout(resolve, 800));
     return { error: "That username and password don’t match. Please try again." };
   }
+  await clearAttempts(limits.map((l) => l.key));
 
   (await cookies()).set(SESSION_COOKIE, createSessionToken(username.trim()), {
     httpOnly: true,
