@@ -73,7 +73,7 @@ export function parseTemplate(data: unknown[][]): { rows: ImportRow[] } | { erro
 
 export const splitServices = (value: string) =>
   value
-    .split(/[;,]/)
+    .split(";")
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -81,6 +81,7 @@ export const splitServices = (value: string) =>
 export function rowProblem(r: ImportRow): string | null {
   if (!r.full_name) return "Name is missing";
   if (!EMAIL_RE.test(r.email.toLowerCase())) return "Email isn’t valid";
+  if (r.consent.toLowerCase() !== "yes") return "Consent isn’t marked Yes";
   if (r.phone && !isPhone(r.phone)) return "Phone number isn’t valid";
   if (r.city && !CITIES.includes(r.city as never)) return `City “${r.city}” isn’t on the list`;
   for (const e of [r.expertise_1, r.expertise_2, r.expertise_3]) {

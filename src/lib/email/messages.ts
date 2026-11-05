@@ -1,15 +1,19 @@
 /** Wording of the account emails. Draft, awaiting approval (see ACCOUNT_EMAILS in .env.example). */
 
 const SIGN_OFF = "The Axon Arbor team";
-const firstName = (name: string) => name.trim().split(" ")[0] || "there";
+/** Letters only, so a form can't be used to send someone a link or other text. */
+const firstName = (name: string) => {
+  const first = name.trim().split(" ")[0];
+  return /^[\p{L}'’-]{1,40}$/u.test(first) ? first : "there";
+};
 const lines = (...parts: string[]) => parts.join("\n\n");
 
-export function companyRequestReceived(name: string, company: string) {
+export function companyRequestReceived(name: string) {
   return {
     subject: "We’ve received your registration",
     text: lines(
       `Hi ${firstName(name)},`,
-      `Thank you for registering ${company} with Axon Arbor. We check every organisation before granting access, and we’ll be in touch once yours has been reviewed.`,
+      "Thank you for registering your organisation with Axon Arbor. We check every organisation before granting access, and we’ll be in touch once yours has been reviewed.",
       SIGN_OFF,
     ),
   };

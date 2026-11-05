@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/sections/PageHeader";
 export const metadata: Metadata = {
   title: "Choose a password",
   robots: { index: false, follow: false },
+  referrer: "no-referrer",
 };
 
 type Props = { searchParams: Promise<{ token?: string }> };

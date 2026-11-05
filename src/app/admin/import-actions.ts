@@ -1,12 +1,11 @@
 "use server";
 
-import { after } from "next/server";
 import { getAdminSession } from "@/lib/admin/auth";
 import { ACCOUNT_TABLES } from "@/lib/accounts/data";
 import { hashPassword, temporaryPassword } from "@/lib/accounts/password";
 import { createPasswordToken } from "@/lib/accounts/session";
 import { invitedWelcome } from "@/lib/email/messages";
-import { sendEmail, siteOrigin } from "@/lib/email/send";
+import { sendEmails, siteOrigin, type Email } from "@/lib/email/send";
 import { rowProblem, splitServices, type ImportRow } from "@/lib/phase2/import";
 import { normaliseUrl } from "@/lib/phase2/validate";
 
@@ -17,13 +16,14 @@ const ROSTER_TABLE = "axon_arbor_trainer_roster";
 const nullable = (value: string) => value || null;
 
 /** Creates consultant accounts with draft profiles. Called in small batches so each request stays short. */
-export async function importConsultants(rows: ImportRow[]): Promise<{ ok: true; results: ImportResult[] } | { ok: false; error: string }> {
+export async function importConsultants(rows: ImportRow[]): Promise<{ ok: true; results: ImportResult[]; emailed: boolean } | { ok: false; error: string }> {
   const session = await getAdminSession();
   if (!session) return { ok: false, error: "Your session has expired. Please sign in again." };
   if (rows.length > MAX_ROWS) return { ok: false, error: "Too many rows in one batch." };
   const db = session.supabase;
   const origin = await siteOrigin();
   const results: ImportResult[] = [];
+  const invites: Email[] = [];
 
   for (const r of rows) {
     const email = r.email.trim().toLowerCase();
@@ -75,8 +75,8 @@ export async function importConsultants(rows: ImportRow[]): Promise<{ ok: true; 
 
     result.created = true;
     result.link = `${origin}/set-password?token=${createPasswordToken(data.id, passwordHash)}`;
-    const link = result.link;
-    after(() => sendEmail({ to: email, ...invitedWelcome(r.full_name, link) }));
+    invites.push({ to: email, ...invitedWelcome(r.full_name, result.link) });
   }
-  return { ok: true, results };
+  const emailed = invites.length > 0 && (await sendEmails(invites));
+  return { ok: true, results, emailed };
 }

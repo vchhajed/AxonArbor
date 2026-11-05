@@ -126,7 +126,10 @@ async function signUpConsultantInner(_prev: FormState, form: FormData): Promise<
 
   const ip = await clientIp();
   if (await isLimited(SIGN_UP_LIMIT(ip))) return { error: TOO_MANY };
-  if (await emailTaken(email)) return { error: DUPLICATE };
+  if (await emailTaken(email)) {
+    await recordAttempt([`signup-ip:${ip}`]);
+    return { error: DUPLICATE };
+  }
 
   const passwordHash = await hashPassword(password);
   // Consultants can use their account straight away; their profile goes live only after admin approval.
@@ -174,7 +177,10 @@ async function signUpCompanyInner(_prev: FormState, form: FormData): Promise<For
 
   const ip = await clientIp();
   if (await isLimited(SIGN_UP_LIMIT(ip))) return { error: TOO_MANY };
-  if (await emailTaken(email)) return { error: DUPLICATE };
+  if (await emailTaken(email)) {
+    await recordAttempt([`signup-ip:${ip}`]);
+    return { error: DUPLICATE };
+  }
 
   const passwordHash = await hashPassword(password);
   const created = await createAccount(email, passwordHash, "company", "pending", {
@@ -190,7 +196,7 @@ async function signUpCompanyInner(_prev: FormState, form: FormData): Promise<For
   });
   if ("error" in created) return { error: created.error };
   await recordAttempt([`signup-ip:${ip}`]);
-  after(() => sendEmail({ to: email, ...companyRequestReceived(values.contact_name, values.company_name) }));
+  after(() => sendEmail({ to: email, ...companyRequestReceived(values.contact_name) }));
   // No session yet: a company can only log in once Axon Arbor has approved it.
   redirect("/join/company/thanks");
 }
@@ -205,6 +211,7 @@ async function signInAccountInner(_prev: FormState, form: FormData): Promise<For
   const email = text(form, "email", 200).toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Please enter your email and password." };
+  if (password.length > 200) return { error: "That email and password don’t match. Please try again." };
 
   const ip = await clientIp();
   const limits = SIGN_IN_LIMITS(email, ip);
@@ -215,6 +222,7 @@ async function signInAccountInner(_prev: FormState, form: FormData): Promise<For
     .select("id, role, status, password_hash")
     .eq("email", email)
     .maybeSingle();
+  if (!data) await hashPassword(password); // same work as a real check, so timing doesn't reveal who has an account
   if (!data || !(await verifyPassword(password, data.password_hash))) {
     await recordAttempt(limits.map((l) => l.key));
     await slowDown();
@@ -350,7 +358,8 @@ async function saveConsultantProfileInner(_prev: FormState, form: FormData): Pro
   const account = await getCurrentAccount();
   if (!account || account.role !== "consultant") return { error: "Please sign in again." };
   const current = await getConsultantProfile(account.id);
-  const submitting = form.get("intent") === "submit";
+  // Any edit to a live profile goes back for review, so it must be complete.
+  const submitting = form.get("intent") === "submit" || current?.profile_status === "live";
   const profile = readProfile(form);
   const fieldErrors = profileErrors(profile, submitting, account.id);
   if (Object.keys(fieldErrors).length) return { error: "Please check the highlighted fields.", fieldErrors };
@@ -393,14 +402,14 @@ export async function requestProfileRemoval(): Promise<FormState> {
 async function requestProfileRemovalInner(): Promise<FormState> {
   const account = await getCurrentAccount();
   if (!account || account.role !== "consultant") return { error: "Please sign in again." };
-  const { error } = await db()
-    .from(ACCOUNT_TABLES.consultants)
-    .update({ profile_status: "removal_requested", updated_at: now() })
-    .eq("account_id", account.id)
-    .in("profile_status", ["live", "pending"]);
-  if (error) return { error: "Sorry, something went wrong. Please try again." };
+  const status = (await getConsultantProfile(account.id))?.profile_status;
+  if (status !== "live" && status !== "pending") return { error: "There’s no profile to remove." };
+  // A profile that isn't live has nothing to confirm, so it's removed straight away.
+  const next = status === "live" ? "removal_requested" : "removed";
+  const { error } = await db().from(ACCOUNT_TABLES.consultants).update({ profile_status: next, updated_at: now() }).eq("account_id", account.id);
+  if (error) return { error: UNEXPECTED };
   refresh();
-  return { error: null, ok: "Removal requested. Axon Arbor will confirm shortly." };
+  return { error: null, ok: next === "removed" ? "Your profile has been removed." : "Removal requested. Axon Arbor will confirm shortly." };
 }
 
 export async function createProfilePhotoUpload(file: { type: string; size: number }) {

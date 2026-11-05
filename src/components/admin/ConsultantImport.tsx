@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import readExcelFile from "read-excel-file/browser";
 import { useRef, useState } from "react";
 import { importConsultants, type ImportResult } from "@/app/admin/import-actions";
+import { csvCell } from "@/lib/csv";
 import { parseTemplate, type ImportRow } from "@/lib/phase2/import";
 import { AdminButton } from "./ui";
 
-const BATCH = 25;
+const BATCH = 10;
 
 /** Loads consultants from the filled-in Excel template. */
 export function ConsultantImport() {
@@ -18,6 +19,7 @@ export function ConsultantImport() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [results, setResults] = useState<ImportResult[] | null>(null);
+  const [allEmailed, setAllEmailed] = useState(false);
 
   async function choose(file: File) {
     setError(null);
@@ -39,25 +41,30 @@ export function ConsultantImport() {
 
   async function run() {
     if (!rows) return;
-    const all: ImportResult[] = [];
+    setError(null);
+    const all: ImportResult[] = results ?? [];
+    let emailed = true;
+    let remaining: ImportRow[] | null = null;
     for (let i = 0; i < rows.length; i += BATCH) {
       setProgress(`Importing ${Math.min(i + BATCH, rows.length)} of ${rows.length}…`);
       const result = await importConsultants(rows.slice(i, i + BATCH)).catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
       if (!result.ok) {
-        setError(result.error);
+        setError(`${result.error} Stopped at row ${rows[i].row}. Import the rest when you’re ready; any row already added will show as having an account.`);
+        remaining = rows.slice(i);
         break;
       }
       all.push(...result.results);
+      if (result.results.some((r) => r.created)) emailed = emailed && result.emailed;
     }
     setProgress(null);
-    setRows(null);
-    setResults(all);
+    setRows(remaining);
+    setResults([...all]);
+    setAllEmailed(emailed);
     router.refresh();
   }
 
   function downloadLinks() {
-    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = (results ?? []).filter((r) => r.created).map((r) => [r.name, r.email, r.link].map(escape).join(","));
+    const lines = (results ?? []).filter((r) => r.created).map((r) => [r.name, r.email, r.link].map(csvCell).join(","));
     const blob = new Blob([["name,email,set_password_link", ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -110,6 +117,7 @@ export function ConsultantImport() {
           <div className="flex flex-wrap items-center gap-3">
             <p className="flex-1">
               <strong>{created}</strong> imported, <strong>{skipped.length}</strong> skipped.
+              {created > 0 && (allEmailed ? " Invites have been emailed." : " Invites were not emailed, so download the links and send them yourself.")}
             </p>
             {created > 0 && (
               <AdminButton size="sm" onClick={downloadLinks}>

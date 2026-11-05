@@ -32,7 +32,7 @@ export const privacy: LegalContent = {
       paragraphs: ["We only collect what you give us, plus the minimum technical data needed to run the site."],
       points: [
         "Contact form: your name, organisation, role, work email, phone number and message.",
-        "Consultant accounts: name, email, password (stored only in scrambled, hashed form), phone, city, expertise, years of experience, industries, delivery mode, languages, bio, and optionally your photo, LinkedIn profile, certifications, notable clients, day-rate range and availability.",
+        "Consultant accounts: name, email, password (stored only in scrambled, hashed form), phone, city, expertise, years of experience, industries, delivery mode, languages, bio, and optionally your photo, LinkedIn profile, certifications, notable clients, day-rate range and availability, and the services you’re interested in.",
         "Company accounts: company name, website, industry, head-office city, company size, and the name, role, work email, phone and password of the person registering.",
         "Account activity: when an account was created, last signed in, and the status of profiles and approvals, including any notes our team adds.",
         "Technical data: our hosting provider records basic server logs (such as IP address, browser type and the pages requested) to keep the site secure and working.",

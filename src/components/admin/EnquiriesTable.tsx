@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { deleteSubmission, updateSubmission } from "@/app/admin/actions";
 import type { Submission } from "@/lib/admin/data";
+import { csvCell } from "@/lib/csv";
 import { AdminButton, ConfirmDialog, formatDate, Toast } from "./ui";
 
 const FILTERS = [
@@ -15,8 +16,7 @@ const FILTERS = [
 
 function toCsv(rows: Submission[]) {
   const cols = ["created_at", "name", "organisation", "role", "email", "phone", "message", "status", "notes"] as const;
-  const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [cols.join(","), ...rows.map((r) => cols.map((c) => escape(r[c])).join(","))].join("\n");
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => csvCell(r[c])).join(","))].join("\n");
 }
 
 export function EnquiriesTable({ submissions }: { submissions: Submission[] }) {

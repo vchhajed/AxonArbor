@@ -6,6 +6,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { addAccount, deleteAccount, resetAccountPassword, setAccountManager, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
 import type { AdminAccountRow } from "@/lib/accounts/admin";
 import type { ProfileStatus } from "@/lib/accounts/data";
+import { csvCell } from "@/lib/csv";
 import { AdminButton, ConfirmDialog, formatDate, Toast } from "./ui";
 
 type Tab = "review" | "active" | "waiting" | "all";
@@ -52,7 +53,6 @@ type Pending =
 
 /** Spreadsheet export; consultant columns match the Excel template. */
 function toCsv(rows: AdminAccountRow[], role: "consultant" | "company") {
-  const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const header =
     role === "consultant"
       ? ["full_name", "email", "phone", "city", "expertise_1", "expertise_2", "expertise_3", "years_experience", "industries", "delivery_mode", "languages", "bio", "linkedin_url", "certifications", "notable_clients", "day_rate_band", "availability", "photo", "consent", "services_of_interest", "profile_status", "account_status", "signed_up", "last_sign_in"]
@@ -64,7 +64,7 @@ function toCsv(rows: AdminAccountRow[], role: "consultant" | "company") {
       role === "consultant"
         ? [c?.full_name, r.email, c?.phone, c?.city, c?.expertise[0], c?.expertise[1], c?.expertise[2], c?.years_experience, c?.industries, c?.delivery_mode, c?.languages, c?.bio, c?.linkedin_url, c?.certifications, c?.notable_clients, c?.day_rate_band, c?.availability, c?.photo_url, c?.consent ? "Yes" : "No", c?.services_of_interest.join("; "), c?.profile_status, r.status, r.created_at, r.last_login_at]
         : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.phone, co?.email_domain, co?.account_manager, r.status, r.created_at, r.last_login_at];
-    return values.map(escape).join(",");
+    return values.map(csvCell).join(",");
   });
   return [header.join(","), ...lines].join("\n");
 }
@@ -173,6 +173,7 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
   const [toast, setToast] = useState<{ message: string; tone: "info" | "error" } | null>(null);
   const [tempPassword, setTempPassword] = useState<{ email: string; password: string } | null>(null);
   const [adding, setAdding] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
   const [newAccount, setNewAccount] = useState({ name: "", email: "", companyName: "" });
 
   const counts = Object.fromEntries(tabs.map((t) => [t.value, rows.filter((r) => inTab(r, t.value)).length])) as Record<Tab, number>;
@@ -188,6 +189,7 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
 
   function ask(p: Pending, initialNote = "") {
     setNote(initialNote);
+    setDialogError(null);
     setPending(p);
   }
 
@@ -210,7 +212,8 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
     const result = await run().catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
     setBusy(false);
     if (!result.ok) {
-      setToast({ message: result.error, tone: "error" });
+      setDialogError(result.error);
+      return;
     } else {
       setPending(null);
       if (p.kind === "reset" && result.password) setTempPassword({ email: p.row.email, password: result.password });
@@ -227,8 +230,7 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
     const result = await addAccount({ role, ...newAccount }).catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
     setBusy(false);
     if (!result.ok) {
-      setToast({ message: result.error, tone: "error" });
-      setTimeout(() => setToast(null), 3000);
+      setDialogError(result.error);
       return;
     }
     setAdding(false);
@@ -274,7 +276,11 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
         <AdminButton size="sm" onClick={download} disabled={visible.length === 0}>
           Download CSV
         </AdminButton>
-        <AdminButton variant="dark" size="sm" onClick={() => setAdding(true)}>
+        <AdminButton variant="dark" size="sm" onClick={() => {
+            setDialogError(null);
+            setAdding(true);
+          }}
+        >
           {role === "consultant" ? "Add consultant" : "Add company"}
         </AdminButton>
       </div>
@@ -365,9 +371,11 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
                       <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "reset", row: r })}>
                         Reset password
                       </AdminButton>
-                      <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "suspend", row: r, suspended: r.status !== "suspended" })}>
-                        {r.status === "suspended" ? "Restore access" : "Pause account"}
-                      </AdminButton>
+                      {(r.status === "approved" || r.status === "suspended") && (
+                        <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "suspend", row: r, suspended: r.status !== "suspended" })}>
+                          {r.status === "suspended" ? "Restore access" : "Pause account"}
+                        </AdminButton>
+                      )}
                       <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "delete", row: r })}>
                         Delete account
                       </AdminButton>
@@ -389,6 +397,11 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
         busy={busy}
       >
         <p>{dialog?.body}</p>
+        {pending && dialogError && (
+          <p role="alert" className="mt-3 border-l-4 border-amber bg-grey-50 px-3 py-2 text-sm text-ink">
+            {dialogError}
+          </p>
+        )}
         {dialog?.note && (
           <label className="mt-4 block">
             <span className="eyebrow text-grey-600">{dialog.note}</span>
@@ -416,6 +429,11 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
             : "The company is approved straight away, as you’re adding it yourself."}{" "}
           You’ll get a temporary password to send them.
         </p>
+        {dialogError && (
+          <p role="alert" className="mt-3 border-l-4 border-amber bg-grey-50 px-3 py-2 text-sm text-ink">
+            {dialogError}
+          </p>
+        )}
         <div className="mt-4 space-y-3">
           {role === "company" && (
             <label className="block">

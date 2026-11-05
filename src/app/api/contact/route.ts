@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { enquiryReceived } from "@/lib/email/messages";
 import { sendEmail } from "@/lib/email/send";
 import { emailEnquiry } from "@/lib/enquiry-email";
+import { clientIp, isLimited, recordAttempt } from "@/lib/security/rate-limit";
 import { normaliseContact, validateContact } from "@/lib/contact-validation";
 import { TABLES } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -55,6 +56,16 @@ export async function POST(request: Request) {
       console.error("[contact] Enquiry email failed:", (e as Error).message, { email: data.email }),
     ),
   );
-  after(() => sendEmail({ to: data.email, ...enquiryReceived(data.name) }));
+  // The address isn't verified, so the automatic reply is limited: the form can't be used to mail-bomb someone.
+  const ip = await clientIp();
+  after(async () => {
+    const limits = [
+      { key: `enquiry-reply-ip:${ip}`, max: 5, windowMinutes: 60 },
+      { key: `enquiry-reply:${data.email}`, max: 2, windowMinutes: 60 },
+    ];
+    if (await isLimited(limits)) return;
+    await recordAttempt(limits.map((l) => l.key));
+    await sendEmail({ to: data.email, ...enquiryReceived(data.name) });
+  });
   return Response.json({ ok: true });
 }
