@@ -473,7 +473,7 @@ function describe(p: Pending): { title: string; body: string; confirm: string; n
   switch (p.kind) {
     case "company":
       return p.decision === "approve"
-        ? { title: `Approve ${who}?`, body: "They’ll get full access to their company account.", confirm: "Approve" }
+        ? { title: `Approve ${who}?`, body: "They’ll get full access to their company account.", confirm: "Approve", note: "Account manager (optional)" }
         : { title: `Reject ${who}?`, body: "They won’t be able to log in, and are told the registration wasn’t approved if they try.", confirm: "Reject", note: "Internal note (optional)" };
     case "profile":
       return {

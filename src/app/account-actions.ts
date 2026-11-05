@@ -3,9 +3,19 @@
 import { refresh } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect, unstable_rethrow } from "next/navigation";
+import { after } from "next/server";
 import { ACCOUNT_TABLES, getCurrentAccount, getConsultantProfile } from "@/lib/accounts/data";
 import { hashPassword, passwordProblem, verifyPassword } from "@/lib/accounts/password";
-import { ACCOUNT_COOKIE, accountCookieOptions, createAccountToken, type AccountRole } from "@/lib/accounts/session";
+import {
+  ACCOUNT_COOKIE,
+  accountCookieOptions,
+  createAccountToken,
+  passwordVersion,
+  readPasswordToken,
+  type AccountRole,
+} from "@/lib/accounts/session";
+import { companyRequestReceived, consultantWelcome } from "@/lib/email/messages";
+import { sendEmail, siteOrigin } from "@/lib/email/send";
 import {
   CITIES,
   DAY_RATE_BANDS,
@@ -24,7 +34,7 @@ import { MEDIA_BUCKET, SUPABASE_URL } from "@/lib/supabase/config";
 
 export type FormState = { error: string | null; fieldErrors?: Record<string, string>; ok?: string; values?: Record<string, string> };
 
-const SECRET_FIELDS = new Set(["password", "current_password", "new_password", "website_url", "intent"]);
+const SECRET_FIELDS = new Set(["password", "current_password", "new_password", "website_url", "intent", "token"]);
 
 const UNEXPECTED = "Sorry, something went wrong on our side. Please try again in a moment.";
 
@@ -124,6 +134,8 @@ async function signUpConsultantInner(_prev: FormState, form: FormData): Promise<
   if ("error" in created) return { error: created.error };
   await recordAttempt([`signup-ip:${ip}`]);
   await startSession(created.id, "consultant", passwordHash);
+  const accountUrl = `${await siteOrigin()}/account`;
+  after(() => sendEmail({ to: email, ...consultantWelcome(fullName, accountUrl) }));
   redirect("/account");
 }
 
@@ -178,6 +190,7 @@ async function signUpCompanyInner(_prev: FormState, form: FormData): Promise<For
   });
   if ("error" in created) return { error: created.error };
   await recordAttempt([`signup-ip:${ip}`]);
+  after(() => sendEmail({ to: email, ...companyRequestReceived(values.contact_name, values.company_name) }));
   // No session yet: a company can only log in once Axon Arbor has approved it.
   redirect("/join/company/thanks");
 }
@@ -246,6 +259,27 @@ async function changePasswordInner(_prev: FormState, form: FormData): Promise<Fo
   // Other devices are signed out (their sessions belong to the old password); this one continues.
   await startSession(account.id, account.role, passwordHash);
   return { error: null, ok: "Password changed. You’ve been signed out on any other devices." };
+}
+
+/** Chooses a password from an emailed or shared link, then signs the person in. */
+export async function setPasswordFromLink(prev: FormState, form: FormData): Promise<FormState> {
+  return safely(() => setPasswordFromLinkInner(prev, form));
+}
+
+async function setPasswordFromLinkInner(_prev: FormState, form: FormData): Promise<FormState> {
+  const expired = "This link has expired or has already been used. Please ask Axon Arbor for a new one.";
+  const token = readPasswordToken(String(form.get("token") ?? ""));
+  if (!token) return { error: expired };
+  const { data } = await db().from(ACCOUNT_TABLES.accounts).select("id, role, status, password_hash").eq("id", token.id).maybeSingle();
+  if (!data || data.status !== "approved" || passwordVersion(data.password_hash) !== token.pv) return { error: expired };
+  const next = String(form.get("new_password") ?? "");
+  const pw = passwordProblem(next);
+  if (pw) return { error: pw };
+  const passwordHash = await hashPassword(next);
+  const { error } = await db().from(ACCOUNT_TABLES.accounts).update({ password_hash: passwordHash, updated_at: now() }).eq("id", data.id);
+  if (error) return { error: UNEXPECTED };
+  await startSession(data.id, data.role as AccountRole, passwordHash);
+  redirect("/account");
 }
 
 /* ---------- consultant profile ---------- */

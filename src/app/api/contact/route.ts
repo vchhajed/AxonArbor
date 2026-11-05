@@ -1,4 +1,6 @@
 import { after } from "next/server";
+import { enquiryReceived } from "@/lib/email/messages";
+import { sendEmail } from "@/lib/email/send";
 import { emailEnquiry } from "@/lib/enquiry-email";
 import { normaliseContact, validateContact } from "@/lib/contact-validation";
 import { TABLES } from "@/lib/supabase/config";
@@ -53,5 +55,6 @@ export async function POST(request: Request) {
       console.error("[contact] Enquiry email failed:", (e as Error).message, { email: data.email }),
     ),
   );
+  after(() => sendEmail({ to: data.email, ...enquiryReceived(data.name) }));
   return Response.json({ ok: true });
 }

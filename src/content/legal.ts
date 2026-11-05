@@ -70,7 +70,7 @@ export const privacy: LegalContent = {
       heading: "6. Who else sees your data",
       paragraphs: ["We don’t sell personal data and we don’t share it for advertising. We share it only with:"],
       points: [
-        "Our service providers, who process it on our behalf under contract: Supabase (database and file storage) and Vercel (website hosting).",
+        "Our service providers, who process it on our behalf under contract: Supabase (database and file storage), Vercel (website hosting) and Resend (sending email).",
         "Verified companies, as described in section 5.",
         "Authorities, courts or advisers where the law requires it or to protect our legal rights.",
       ],

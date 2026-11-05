@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signInAccount, signUpCompany, signUpConsultant, type FormState } from "@/app/account-actions";
+import { setPasswordFromLink, signInAccount, signUpCompany, signUpConsultant, type FormState } from "@/app/account-actions";
 import { Button } from "@/components/ui/Button";
 import { CITIES, EMPLOYEE_BANDS } from "@/lib/phase2/options";
 import { CheckboxField, FormMessage, KeepValues, submitWithoutReset, Honeypot, SelectField, TextField } from "./fields";
@@ -22,6 +22,27 @@ export function SignInForm({ submitLabel = "Sign in" }: { submitLabel?: string }
         </Button>
       </form>
     </KeepValues>
+  );
+}
+
+export function SetPasswordForm({ token }: { token: string }) {
+  const [state, action, pending] = useActionState(setPasswordFromLink, initial);
+  return (
+    <form action={action} onSubmit={submitWithoutReset(action)} noValidate className="max-w-md space-y-7">
+      <input type="hidden" name="token" value={token} />
+      <TextField
+        name="new_password"
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        required
+        hint="At least 10 characters, with letters and numbers."
+      />
+      <FormMessage error={state.error} />
+      <Button type="submit" arrow disabled={pending}>
+        {pending ? "Saving…" : "Set password"}
+      </Button>
+    </form>
   );
 }
 

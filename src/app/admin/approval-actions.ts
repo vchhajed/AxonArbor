@@ -1,8 +1,12 @@
 "use server";
 
+import { after } from "next/server";
 import { getAdminSession } from "@/lib/admin/auth";
 import { ACCOUNT_TABLES } from "@/lib/accounts/data";
 import { hashPassword, temporaryPassword } from "@/lib/accounts/password";
+import { createPasswordToken } from "@/lib/accounts/session";
+import { companyWelcome, invitedWelcome } from "@/lib/email/messages";
+import { sendEmail, siteOrigin } from "@/lib/email/send";
 import { EMAIL_RE, emailDomain, isWorkEmail } from "@/lib/phase2/options";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 
@@ -27,12 +31,26 @@ export async function reviewCompany(accountId: string, decision: "approve" | "re
       status: decision === "approve" ? "approved" : "rejected",
       reviewed_at: now(),
       reviewed_by: a.by,
-      review_note: cleanNote(note),
+      // On approval the note field holds the account manager's name.
+      review_note: decision === "approve" ? null : cleanNote(note),
       updated_at: now(),
     })
     .eq("id", accountId)
     .eq("role", "company");
-  return error ? { ok: false, error: "Couldn’t save the decision." } : { ok: true };
+  if (error) return { ok: false, error: "Couldn’t save the decision." };
+  if (decision === "approve") {
+    const manager = cleanNote(note)?.slice(0, 120) ?? null;
+    if (manager) await a.supabase.from(ACCOUNT_TABLES.companies).update({ account_manager: manager, updated_at: now() }).eq("account_id", accountId);
+    const [{ data: account }, { data: company }] = await Promise.all([
+      a.supabase.from(ACCOUNT_TABLES.accounts).select("email").eq("id", accountId).single(),
+      a.supabase.from(ACCOUNT_TABLES.companies).select("company_name, contact_name, account_manager").eq("account_id", accountId).single(),
+    ]);
+    if (account && company) {
+      const signInUrl = `${await siteOrigin()}/sign-in`;
+      after(() => sendEmail({ to: account.email, ...companyWelcome(company.contact_name, company.company_name, signInUrl, company.account_manager) }));
+    }
+  }
+  return { ok: true };
 }
 
 /**
@@ -105,9 +123,10 @@ export async function addAccount(input: { role: "consultant" | "company"; name: 
   }
 
   const password = temporaryPassword();
+  const passwordHash = await hashPassword(password);
   const { data, error } = await a.supabase
     .from(ACCOUNT_TABLES.accounts)
-    .insert({ email, password_hash: await hashPassword(password), role: input.role, status: "approved", reviewed_at: now(), reviewed_by: a.by })
+    .insert({ email, password_hash: passwordHash, role: input.role, status: "approved", reviewed_at: now(), reviewed_by: a.by })
     .select("id")
     .single();
   if (error?.code === "23505") return { ok: false, error: "An account with this email already exists." };
@@ -121,6 +140,8 @@ export async function addAccount(input: { role: "consultant" | "company"; name: 
     await a.supabase.from(ACCOUNT_TABLES.accounts).delete().eq("id", data.id);
     return { ok: false, error: "Couldn’t add the account." };
   }
+  const link = `${await siteOrigin()}/set-password?token=${createPasswordToken(data.id, passwordHash)}`;
+  after(() => sendEmail({ to: email, ...invitedWelcome(name, link) }));
   return { ok: true, password };
 }
 

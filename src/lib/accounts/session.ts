@@ -58,6 +58,35 @@ export function readAccountToken(token: string | undefined): { id: string; role:
   }
 }
 
+const PASSWORD_LINK_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+type PasswordPayload = { typ: "set-password"; sub: string; pv: string; exp: number };
+const signLink = (body: string) => createHmac("sha256", key()).update(`set-password.${body}`).digest("base64url");
+
+/** A link token for choosing a password. Tied to the current password, so it works only once. */
+export function createPasswordToken(accountId: string, passwordHash: string): string {
+  const payload: PasswordPayload = {
+    typ: "set-password",
+    sub: accountId,
+    pv: passwordVersion(passwordHash),
+    exp: Math.floor(Date.now() / 1000) + PASSWORD_LINK_MAX_AGE,
+  };
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${body}.${signLink(body)}`;
+}
+
+export function readPasswordToken(token: string): { id: string; pv: string } | null {
+  const [body, signature] = token.split(".");
+  if (!body || !signature) return null;
+  try {
+    if (!safeEqual(signature, signLink(body))) return null;
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as PasswordPayload;
+    if (payload.typ !== "set-password" || payload.exp < Date.now() / 1000) return null;
+    return { id: payload.sub, pv: payload.pv };
+  } catch {
+    return null;
+  }
+}
+
 export const accountCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
