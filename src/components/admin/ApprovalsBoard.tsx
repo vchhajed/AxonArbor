@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- consultant photos uploaded at runtime */
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { deleteAccount, resetAccountPassword, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
+import { addAccount, deleteAccount, resetAccountPassword, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
 import type { AdminAccountRow } from "@/lib/accounts/admin";
 import type { ProfileStatus } from "@/lib/accounts/data";
 import { AdminButton, ConfirmDialog, formatDate, Toast } from "./ui";
@@ -169,6 +169,8 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "info" | "error" } | null>(null);
   const [tempPassword, setTempPassword] = useState<{ email: string; password: string } | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newAccount, setNewAccount] = useState({ name: "", email: "", companyName: "" });
 
   const counts = Object.fromEntries(tabs.map((t) => [t.value, rows.filter((r) => inTab(r, t.value)).length])) as Record<Tab, number>;
 
@@ -215,6 +217,21 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
 
   const dialog = pending && describe(pending);
 
+  async function add() {
+    setBusy(true);
+    const result = await addAccount({ role, ...newAccount }).catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
+    setBusy(false);
+    if (!result.ok) {
+      setToast({ message: result.error, tone: "error" });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+    setAdding(false);
+    if (result.password) setTempPassword({ email: newAccount.email.trim().toLowerCase(), password: result.password });
+    setNewAccount({ name: "", email: "", companyName: "" });
+    router.refresh();
+  }
+
   function download() {
     const blob = new Blob(["﻿" + toCsv(visible, role)], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
@@ -251,6 +268,9 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
         />
         <AdminButton size="sm" onClick={download} disabled={visible.length === 0}>
           Download CSV
+        </AdminButton>
+        <AdminButton variant="dark" size="sm" onClick={() => setAdding(true)}>
+          {role === "consultant" ? "Add consultant" : "Add company"}
         </AdminButton>
       </div>
 
@@ -373,6 +393,54 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
       </ConfirmDialog>
 
       <ConfirmDialog
+        open={adding}
+        title={role === "consultant" ? "Add a consultant" : "Add a company"}
+        confirmLabel="Add"
+        onConfirm={add}
+        onCancel={() => setAdding(false)}
+        busy={busy}
+      >
+        <p>
+          {role === "consultant"
+            ? "They’ll get an account with a draft profile to complete and submit."
+            : "The company is approved straight away, as you’re adding it yourself."}{" "}
+          You’ll get a temporary password to send them.
+        </p>
+        <div className="mt-4 space-y-3">
+          {role === "company" && (
+            <label className="block">
+              <span className="eyebrow text-grey-600">Company name</span>
+              <input
+                name="add_company_name"
+                value={newAccount.companyName}
+                onChange={(e) => setNewAccount({ ...newAccount, companyName: e.target.value })}
+                className="mt-2 block w-full border border-grey-300 px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+              />
+            </label>
+          )}
+          <label className="block">
+            <span className="eyebrow text-grey-600">{role === "consultant" ? "Full name" : "Contact name"}</span>
+            <input
+              name="add_name"
+              value={newAccount.name}
+              onChange={(e) => setNewAccount({ ...newAccount, name: e.target.value })}
+              className="mt-2 block w-full border border-grey-300 px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="eyebrow text-grey-600">Email</span>
+            <input
+              name="add_email"
+              type="email"
+              value={newAccount.email}
+              onChange={(e) => setNewAccount({ ...newAccount, email: e.target.value })}
+              className="mt-2 block w-full border border-grey-300 px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+            />
+          </label>
+        </div>
+      </ConfirmDialog>
+
+      <ConfirmDialog
         open={Boolean(tempPassword)}
         title="New temporary password"
         confirmLabel="Done"
@@ -396,7 +464,7 @@ function describe(p: Pending): { title: string; body: string; confirm: string; n
     case "company":
       return p.decision === "approve"
         ? { title: `Approve ${who}?`, body: "They’ll get full access to their company account.", confirm: "Approve" }
-        : { title: `Reject ${who}?`, body: "They’ll see that the registration wasn’t approved.", confirm: "Reject", note: "Note shown to the company (optional)" };
+        : { title: `Reject ${who}?`, body: "They won’t be able to log in, and are told the registration wasn’t approved if they try.", confirm: "Reject", note: "Internal note (optional)" };
     case "profile":
       return {
         approve: { title: `Approve ${who}’s profile?`, body: "The profile goes live and can be matched to company requests.", confirm: "Approve" },

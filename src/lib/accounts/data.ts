@@ -76,8 +76,8 @@ export async function getCurrentAccount(): Promise<Account | null> {
     .maybeSingle();
   if (!data) return null;
   const { password_hash, ...account } = data as Account & { password_hash: string };
-  // Suspended and deleted accounts lose access immediately, as do sessions from before a password change.
-  if (account.status === "suspended" || account.role !== session.role) return null;
+  // Only approved accounts have access, so pausing or deleting one takes effect immediately, as does a password change.
+  if (account.status !== "approved" || account.role !== session.role) return null;
   if (passwordVersion(password_hash) !== session.pv) return null;
   return account;
 }

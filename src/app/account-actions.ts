@@ -177,8 +177,8 @@ async function signUpCompanyInner(_prev: FormState, form: FormData): Promise<For
   });
   if ("error" in created) return { error: created.error };
   await recordAttempt([`signup-ip:${ip}`]);
-  await startSession(created.id, "company", passwordHash);
-  redirect("/account");
+  // No session yet: a company can only log in once Axon Arbor has approved it.
+  redirect("/join/company/thanks");
 }
 
 /* ---------- sign in / out ---------- */
@@ -207,6 +207,8 @@ async function signInAccountInner(_prev: FormState, form: FormData): Promise<For
     return { error: "That email and password don’t match. Please try again." };
   }
   if (data.status === "suspended") return { error: "This account has been paused. Please contact Axon Arbor." };
+  if (data.status === "pending") return { error: "Your company is still waiting for approval. Axon Arbor will be in touch once it has been reviewed." };
+  if (data.status === "rejected") return { error: "This registration wasn’t approved. Please contact Axon Arbor if you think this is a mistake." };
   await clearAttempts([`signin-email:${email}`]);
   await db().from(ACCOUNT_TABLES.accounts).update({ last_login_at: now() }).eq("id", data.id);
   await startSession(data.id, data.role as AccountRole, data.password_hash);

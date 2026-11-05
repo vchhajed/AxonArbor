@@ -101,21 +101,11 @@ async function AccountPage() {
 
   const company = await getCompanyProfile(account.id);
   if (!company) return <Missing />;
-  const companyStatus = {
-    pending: { label: "Waiting for approval", text: "Thanks for registering. Axon Arbor checks every company before granting access, usually within one working day." },
-    approved: { label: "Approved", text: "Your company is approved. Searching for consultants will open here soon." },
-    rejected: { label: "Not approved", text: "We weren’t able to approve this registration. Please contact Axon Arbor if you think this is a mistake." },
-    suspended: { label: "Paused", text: "This account has been paused." },
-  }[account.status];
 
   return (
     <Container className="py-16 sm:py-20">
       <Header account={account} name={company.contact_name.split(" ")[0] || "there"} />
-      <StatusPanel
-        {...companyStatus}
-        note={account.status === "rejected" ? account.review_note : null}
-        tone={account.status === "approved" ? "ink" : "amber"}
-      />
+      <StatusPanel label="Approved" text="Your company is approved. Searching for consultants will open here soon." tone="ink" />
       <Section title={company.company_name}>
         <CompanyProfileForm company={company} />
       </Section>
