@@ -251,14 +251,14 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
   return (
     <div className="mt-8">
       <div className="flex flex-wrap items-center gap-3">
-        <div role="tablist" aria-label={role === "consultant" ? "Filter consultants" : "Filter companies"} className="flex border border-grey-200 bg-paper">
+        <div role="tablist" aria-label={role === "consultant" ? "Filter consultants" : "Filter companies"} className="flex max-w-full overflow-x-auto border border-grey-200 bg-paper">
           {tabs.map((t) => (
             <button
               key={t.value}
               role="tab"
               aria-selected={tab === t.value}
               onClick={() => setTab(t.value)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm ${tab === t.value ? "bg-ink text-paper" : "text-grey-700 hover:bg-grey-100"}`}
+              className={`flex shrink-0 items-center gap-2 px-4 py-2 text-sm whitespace-nowrap ${tab === t.value ? "bg-ink text-paper" : "text-grey-700 hover:bg-grey-100"}`}
             >
               {t.label}
               <span className={`text-xs ${tab === t.value ? "text-grey-300" : "text-grey-500"}`}>{counts[t.value]}</span>
@@ -306,7 +306,7 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
                   aria-expanded={open}
                   className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4 text-left hover:bg-grey-50"
                 >
-                  <span className="min-w-0 flex-1">
+                  <span className="min-w-0 flex-1 basis-full sm:basis-0">
                     <span className="block truncate font-medium">{name(r)}</span>
                     <span className="block truncate text-sm text-grey-500">
                       {r.role === "consultant" ? (r.consultant?.expertise.slice(0, 2).join(", ") || "No expertise yet") : (r.company?.contact_name ?? "")} · {r.email}
