@@ -52,6 +52,17 @@ export async function reviewProfile(accountId: string, decision: "approve" | "ch
   return error ? { ok: false, error: "Couldn’t save the decision." } : { ok: true };
 }
 
+/** Sets a company's account manager; a blank name clears it. */
+export async function setAccountManager(accountId: string, name?: string): Promise<Result> {
+  const a = await admin();
+  if (!a) return { ok: false, error: SESSION_EXPIRED };
+  const { error } = await a.supabase
+    .from(ACCOUNT_TABLES.companies)
+    .update({ account_manager: (name ?? "").trim().slice(0, 120) || null, updated_at: now() })
+    .eq("account_id", accountId);
+  return error ? { ok: false, error: "Couldn’t save the account manager." } : { ok: true };
+}
+
 /** Pause an account (it can't sign in) or restore it. */
 export async function setAccountSuspended(accountId: string, suspended: boolean): Promise<Result> {
   const a = await admin();

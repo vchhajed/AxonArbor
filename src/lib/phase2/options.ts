@@ -27,6 +27,9 @@ export const EXPERTISE = [
   "Corporate Finance",
 ] as const;
 
+/** Services a consultant can mark an interest in. The expertise list until Axon Arbor confirms its own. */
+export const SERVICES = EXPERTISE;
+
 export const CITIES = [
   "Delhi NCR",
   "Mumbai",

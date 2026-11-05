@@ -105,7 +105,11 @@ async function AccountPage() {
   return (
     <Container className="py-16 sm:py-20">
       <Header account={account} name={company.contact_name.split(" ")[0] || "there"} />
-      <StatusPanel label="Approved" text="Your company is approved. Searching for consultants will open here soon." tone="ink" />
+      <StatusPanel
+        label="Approved"
+        text={`Your company is approved.${company.account_manager ? ` Your account manager is ${company.account_manager}.` : ""} Searching for consultants will open here soon.`}
+        tone="ink"
+      />
       <Section title={company.company_name}>
         <CompanyProfileForm company={company} />
       </Section>

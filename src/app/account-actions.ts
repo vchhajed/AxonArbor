@@ -15,6 +15,7 @@ import {
   EMPLOYEE_BANDS,
   EXPERTISE,
   isWorkEmail,
+  SERVICES,
 } from "@/lib/phase2/options";
 import { isLinkedIn, isPhone, normaliseUrl } from "@/lib/phase2/validate";
 import { clearAttempts, clientIp, isLimited, recordAttempt } from "@/lib/security/rate-limit";
@@ -278,6 +279,7 @@ function readProfile(form: FormData) {
     availability: nullable(text(form, "availability", 120)),
     photo_url: nullable(text(form, "photo_url", 500)),
     consent: form.get("consent") === "on",
+    services_of_interest: SERVICES.filter((_, i) => form.get(`service_${i}`) === "on") as string[],
   };
 }
 

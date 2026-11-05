@@ -12,7 +12,7 @@ import {
 } from "@/app/account-actions";
 import { Button } from "@/components/ui/Button";
 import type { CompanyProfile, ConsultantProfile } from "@/lib/accounts/data";
-import { CITIES, DAY_RATE_BANDS, DELIVERY_MODES, EMPLOYEE_BANDS, EXPERTISE } from "@/lib/phase2/options";
+import { CITIES, DAY_RATE_BANDS, DELIVERY_MODES, EMPLOYEE_BANDS, EXPERTISE, SERVICES } from "@/lib/phase2/options";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
 import { CheckboxField, FormMessage, KeepValues, submitWithoutReset, SelectField, TextField } from "./fields";
@@ -122,6 +122,16 @@ export function ConsultantProfileForm({ profile }: { profile: ConsultantProfile 
             hint="Up to about 80 words. Companies see this (without your name) when you match their request."
             className="sm:col-span-3"
           />
+        </fieldset>
+
+        <fieldset>
+          <legend className="font-serif text-2xl">Services you’re interested in (optional)</legend>
+          <p className="mt-2 mb-6 text-sm text-grey-500">Choose any you’d like to deliver through Axon Arbor.</p>
+          <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((service, i) => (
+              <CheckboxField key={service} name={`service_${i}`} label={service} defaultChecked={profile.services_of_interest.includes(service)} />
+            ))}
+          </div>
         </fieldset>
 
         <fieldset className="grid gap-x-8 gap-y-7 sm:grid-cols-2">

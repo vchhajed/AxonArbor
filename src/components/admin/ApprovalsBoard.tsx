@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- consultant photos uploaded at runtime */
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { addAccount, deleteAccount, resetAccountPassword, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
+import { addAccount, deleteAccount, resetAccountPassword, setAccountManager, reviewCompany, reviewProfile, setAccountSuspended } from "@/app/admin/approval-actions";
 import type { AdminAccountRow } from "@/lib/accounts/admin";
 import type { ProfileStatus } from "@/lib/accounts/data";
 import { AdminButton, ConfirmDialog, formatDate, Toast } from "./ui";
@@ -47,22 +47,23 @@ type Pending =
   | { kind: "profile"; row: AdminAccountRow; decision: "approve" | "changes" | "remove" | "keep" }
   | { kind: "suspend"; row: AdminAccountRow; suspended: boolean }
   | { kind: "reset"; row: AdminAccountRow }
-  | { kind: "delete"; row: AdminAccountRow };
+  | { kind: "delete"; row: AdminAccountRow }
+  | { kind: "manager"; row: AdminAccountRow };
 
 /** Spreadsheet export; consultant columns match the Excel template. */
 function toCsv(rows: AdminAccountRow[], role: "consultant" | "company") {
   const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const header =
     role === "consultant"
-      ? ["full_name", "email", "phone", "city", "expertise_1", "expertise_2", "expertise_3", "years_experience", "industries", "delivery_mode", "languages", "bio", "linkedin_url", "certifications", "notable_clients", "day_rate_band", "availability", "photo", "consent", "profile_status", "account_status", "signed_up", "last_sign_in"]
-      : ["company_name", "website", "industry", "city", "employee_count", "contact_name", "contact_role", "email", "phone", "email_domain", "account_status", "signed_up", "last_sign_in"];
+      ? ["full_name", "email", "phone", "city", "expertise_1", "expertise_2", "expertise_3", "years_experience", "industries", "delivery_mode", "languages", "bio", "linkedin_url", "certifications", "notable_clients", "day_rate_band", "availability", "photo", "consent", "services_of_interest", "profile_status", "account_status", "signed_up", "last_sign_in"]
+      : ["company_name", "website", "industry", "city", "employee_count", "contact_name", "contact_role", "email", "phone", "email_domain", "account_manager", "account_status", "signed_up", "last_sign_in"];
   const lines = rows.map((r) => {
     const c = r.consultant;
     const co = r.company;
     const values =
       role === "consultant"
-        ? [c?.full_name, r.email, c?.phone, c?.city, c?.expertise[0], c?.expertise[1], c?.expertise[2], c?.years_experience, c?.industries, c?.delivery_mode, c?.languages, c?.bio, c?.linkedin_url, c?.certifications, c?.notable_clients, c?.day_rate_band, c?.availability, c?.photo_url, c?.consent ? "Yes" : "No", c?.profile_status, r.status, r.created_at, r.last_login_at]
-        : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.phone, co?.email_domain, r.status, r.created_at, r.last_login_at];
+        ? [c?.full_name, r.email, c?.phone, c?.city, c?.expertise[0], c?.expertise[1], c?.expertise[2], c?.years_experience, c?.industries, c?.delivery_mode, c?.languages, c?.bio, c?.linkedin_url, c?.certifications, c?.notable_clients, c?.day_rate_band, c?.availability, c?.photo_url, c?.consent ? "Yes" : "No", c?.services_of_interest.join("; "), c?.profile_status, r.status, r.created_at, r.last_login_at]
+        : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.phone, co?.email_domain, co?.account_manager, r.status, r.created_at, r.last_login_at];
     return values.map(escape).join(",");
   });
   return [header.join(","), ...lines].join("\n");
@@ -132,6 +133,7 @@ function Details({ row }: { row: AdminAccountRow }) {
               value={c.linkedin_url && <a href={c.linkedin_url} target="_blank" rel="noreferrer" className="underline decoration-amber">Open profile ↗</a>}
             />
             <Detail label="Consent to share" value={c.consent ? "Yes" : "No"} />
+            <Detail label="Services of interest" value={c.services_of_interest.join(", ")} />
             <div className="sm:col-span-2 lg:col-span-3">
               <Detail label="Bio" value={c.bio} />
             </div>
@@ -150,6 +152,7 @@ function Details({ row }: { row: AdminAccountRow }) {
             <Detail label="Industry" value={co.industry} />
             <Detail label="Head office" value={co.city} />
             <Detail label="Employees" value={co.employee_count} />
+            <Detail label="Account manager" value={co.account_manager ?? "Not assigned"} />
             <Detail label="Decision note" value={row.review_note} />
           </>
         )}
@@ -183,8 +186,8 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
     });
   }, [rows, tab, query]);
 
-  function ask(p: Pending) {
-    setNote("");
+  function ask(p: Pending, initialNote = "") {
+    setNote(initialNote);
     setPending(p);
   }
 
@@ -201,7 +204,9 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
             ? setAccountSuspended(p.row.id, p.suspended)
             : p.kind === "delete"
               ? deleteAccount(p.row.id)
-              : resetAccountPassword(p.row.id);
+              : p.kind === "manager"
+                ? setAccountManager(p.row.id, note)
+                : resetAccountPassword(p.row.id);
     const result = await run().catch(() => ({ ok: false as const, error: "Couldn’t reach the server. Please try again." }));
     setBusy(false);
     if (!result.ok) {
@@ -351,6 +356,11 @@ export function ApprovalsBoard({ rows, role }: { rows: AdminAccountRow[]; role: 
                           Take profile down
                         </AdminButton>
                       )}
+                      {r.role === "company" && (
+                        <AdminButton size="sm" onClick={() => ask({ kind: "manager", row: r }, r.company?.account_manager ?? "")}>
+                          {r.company?.account_manager ? "Change account manager" : "Assign account manager"}
+                        </AdminButton>
+                      )}
                       <span className="flex-1" />
                       <AdminButton variant="ghost" size="sm" onClick={() => ask({ kind: "reset", row: r })}>
                         Reset password
@@ -476,6 +486,8 @@ function describe(p: Pending): { title: string; body: string; confirm: string; n
       return p.suspended
         ? { title: `Pause ${who}?`, body: "They’ll be signed out and can’t sign in until you restore access.", confirm: "Pause account" }
         : { title: `Restore ${who}?`, body: "They’ll be able to sign in again, with an approved account.", confirm: "Restore access" };
+    case "manager":
+      return { title: `Account manager for ${who}`, body: "The company sees this name on its account page. Leave it blank to clear it.", confirm: "Save", note: "Account manager’s name" };
     case "delete":
       return {
         title: `Delete ${who} permanently?`,

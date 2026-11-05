@@ -31,6 +31,7 @@ export type ConsultantProfile = {
   phone: string | null;
   city: string | null;
   expertise: string[];
+  services_of_interest: string[];
   years_experience: number | null;
   industries: string | null;
   delivery_mode: string | null;
@@ -57,6 +58,7 @@ export type CompanyProfile = {
   industry: string | null;
   city: string | null;
   employee_count: string | null;
+  account_manager: string | null;
   contact_name: string;
   contact_role: string | null;
   phone: string | null;
