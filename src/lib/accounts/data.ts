@@ -63,6 +63,7 @@ export type CompanyProfile = {
   contact_role: string | null;
   phone: string | null;
   email_domain: string;
+  email_confirmed_at: string | null;
 };
 
 const ACCOUNT_COLUMNS = "id, email, role, status, created_at, reviewed_at, review_note, last_login_at";

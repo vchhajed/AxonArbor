@@ -59,16 +59,17 @@ export function readAccountToken(token: string | undefined): { id: string; role:
 }
 
 const PASSWORD_LINK_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+export const RESET_LINK_MAX_AGE = 60 * 60; // 1 hour
 type PasswordPayload = { typ: "set-password"; sub: string; pv: string; exp: number };
 const signLink = (body: string) => createHmac("sha256", key()).update(`set-password.${body}`).digest("base64url");
 
 /** A link token for choosing a password. Tied to the current password, so it works only once. */
-export function createPasswordToken(accountId: string, passwordHash: string): string {
+export function createPasswordToken(accountId: string, passwordHash: string, maxAge = PASSWORD_LINK_MAX_AGE): string {
   const payload: PasswordPayload = {
     typ: "set-password",
     sub: accountId,
     pv: passwordVersion(passwordHash),
-    exp: Math.floor(Date.now() / 1000) + PASSWORD_LINK_MAX_AGE,
+    exp: Math.floor(Date.now() / 1000) + maxAge,
   };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${signLink(body)}`;
@@ -82,6 +83,30 @@ export function readPasswordToken(token: string): { id: string; pv: string } | n
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as PasswordPayload;
     if (payload.typ !== "set-password" || payload.exp < Date.now() / 1000) return null;
     return { id: payload.sub, pv: payload.pv };
+  } catch {
+    return null;
+  }
+}
+
+const CONFIRM_LINK_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+type ConfirmPayload = { typ: "confirm-email"; sub: string; exp: number };
+const signConfirm = (body: string) => createHmac("sha256", key()).update(`confirm-email.${body}`).digest("base64url");
+
+/** A link token proving someone can read the inbox they registered with. */
+export function createConfirmToken(accountId: string): string {
+  const payload: ConfirmPayload = { typ: "confirm-email", sub: accountId, exp: Math.floor(Date.now() / 1000) + CONFIRM_LINK_MAX_AGE };
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${body}.${signConfirm(body)}`;
+}
+
+export function readConfirmToken(token: string): { id: string } | null {
+  const [body, signature] = token.split(".");
+  if (!body || !signature) return null;
+  try {
+    if (!safeEqual(signature, signConfirm(body))) return null;
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as ConfirmPayload;
+    if (payload.typ !== "confirm-email" || payload.exp < Date.now() / 1000) return null;
+    return { id: payload.sub };
   } catch {
     return null;
   }

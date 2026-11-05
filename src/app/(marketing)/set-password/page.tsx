@@ -20,7 +20,7 @@ async function Form({ searchParams }: Props) {
 export default function Page({ searchParams }: Props) {
   return (
     <>
-      <PageHeader eyebrow="Your account" heading="Choose a password." lede="Set your password to finish setting up your Axon Arbor account." />
+      <PageHeader eyebrow="Your account" heading="Choose a password." lede="Set a new password for your Axon Arbor account." />
       <Container className="py-16 sm:py-20">
         <Suspense>
           <Form searchParams={searchParams} />

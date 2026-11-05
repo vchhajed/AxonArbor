@@ -8,12 +8,14 @@ const firstName = (name: string) => {
 };
 const lines = (...parts: string[]) => parts.join("\n\n");
 
-export function companyRequestReceived(name: string) {
+export function companyRequestReceived(name: string, confirmUrl: string) {
   return {
     subject: "We’ve received your registration",
     text: lines(
       `Hi ${firstName(name)},`,
       "Thank you for registering your organisation with Axon Arbor. We check every organisation before granting access, and we’ll be in touch once yours has been reviewed.",
+      `Please confirm your email address to help us review it: ${confirmUrl}`,
+      "The link works for 7 days. If you didn’t register, you can ignore this email.",
       SIGN_OFF,
     ),
   };
@@ -51,6 +53,18 @@ export function invitedWelcome(name: string, setPasswordUrl: string) {
       `Hi ${firstName(name)},`,
       `Axon Arbor has set up your account. Choose a password to get started: ${setPasswordUrl}`,
       "The link works for 30 days.",
+      SIGN_OFF,
+    ),
+  };
+}
+
+export function passwordReset(setPasswordUrl: string) {
+  return {
+    subject: "Reset your Axon Arbor password",
+    text: lines(
+      "Hello,",
+      `We received a request to reset your password. Choose a new one here: ${setPasswordUrl}`,
+      "The link works once, for one hour. If you didn’t ask for this, you can ignore this email and your password will stay the same.",
       SIGN_OFF,
     ),
   };

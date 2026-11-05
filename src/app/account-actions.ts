@@ -10,12 +10,16 @@ import {
   ACCOUNT_COOKIE,
   accountCookieOptions,
   createAccountToken,
+  createConfirmToken,
+  createPasswordToken,
   passwordVersion,
+  readConfirmToken,
   readPasswordToken,
+  RESET_LINK_MAX_AGE,
   type AccountRole,
 } from "@/lib/accounts/session";
-import { companyRequestReceived, consultantWelcome } from "@/lib/email/messages";
-import { sendEmail, siteOrigin } from "@/lib/email/send";
+import { companyRequestReceived, consultantWelcome, passwordReset } from "@/lib/email/messages";
+import { emailsEnabled, sendEmail, siteOrigin } from "@/lib/email/send";
 import {
   CITIES,
   DAY_RATE_BANDS,
@@ -196,7 +200,8 @@ async function signUpCompanyInner(_prev: FormState, form: FormData): Promise<For
   });
   if ("error" in created) return { error: created.error };
   await recordAttempt([`signup-ip:${ip}`]);
-  after(() => sendEmail({ to: email, ...companyRequestReceived(values.contact_name) }));
+  const confirmUrl = `${await siteOrigin()}/confirm-email?token=${createConfirmToken(created.id)}`;
+  after(() => sendEmail({ to: email, ...companyRequestReceived(values.contact_name, confirmUrl) }));
   // No session yet: a company can only log in once Axon Arbor has approved it.
   redirect("/join/company/thanks");
 }
@@ -269,6 +274,33 @@ async function changePasswordInner(_prev: FormState, form: FormData): Promise<Fo
   return { error: null, ok: "Password changed. You’ve been signed out on any other devices." };
 }
 
+/** Emails a reset link. The reply is the same whether or not the address has an account. */
+export async function requestPasswordReset(prev: FormState, form: FormData): Promise<FormState> {
+  return keep(form, await safely(() => requestPasswordResetInner(prev, form)));
+}
+
+async function requestPasswordResetInner(_prev: FormState, form: FormData): Promise<FormState> {
+  const email = text(form, "email", 200).toLowerCase();
+  if (!EMAIL_RE.test(email)) return { error: "Please enter a valid email address." };
+  if (!emailsEnabled()) return { error: "Password reset by email isn’t available yet. Please contact Axon Arbor and we’ll reset it for you." };
+  const ip = await clientIp();
+  const limits = [
+    { key: `reset-email:${email}`, max: 3, windowMinutes: 60 },
+    { key: `reset-ip:${ip}`, max: 10, windowMinutes: 60 },
+  ];
+  if (await isLimited(limits)) return { error: "Too many requests. Please try again in an hour." };
+  await recordAttempt(limits.map((l) => l.key));
+  const origin = await siteOrigin();
+  // Looked up after replying, so response time doesn't reveal who has an account.
+  after(async () => {
+    const { data } = await db().from(ACCOUNT_TABLES.accounts).select("id, status, password_hash").eq("email", email).maybeSingle();
+    if (data?.status !== "approved") return;
+    const token = createPasswordToken(data.id, data.password_hash, RESET_LINK_MAX_AGE);
+    await sendEmail({ to: email, ...passwordReset(`${origin}/set-password?token=${token}`) });
+  });
+  return { error: null, ok: "If that address has an account, we’ve sent a link to reset your password. Please check your inbox." };
+}
+
 /** Chooses a password from an emailed or shared link, then signs the person in. */
 export async function setPasswordFromLink(prev: FormState, form: FormData): Promise<FormState> {
   return safely(() => setPasswordFromLinkInner(prev, form));
@@ -278,7 +310,7 @@ async function setPasswordFromLinkInner(_prev: FormState, form: FormData): Promi
   const expired = "This link has expired or has already been used. Please ask Axon Arbor for a new one.";
   const token = readPasswordToken(String(form.get("token") ?? ""));
   if (!token) return { error: expired };
-  const { data } = await db().from(ACCOUNT_TABLES.accounts).select("id, role, status, password_hash").eq("id", token.id).maybeSingle();
+  const { data } = await db().from(ACCOUNT_TABLES.accounts).select("id, email, role, status, password_hash").eq("id", token.id).maybeSingle();
   if (!data || data.status !== "approved" || passwordVersion(data.password_hash) !== token.pv) return { error: expired };
   const next = String(form.get("new_password") ?? "");
   const pw = passwordProblem(next);
@@ -286,8 +318,29 @@ async function setPasswordFromLinkInner(_prev: FormState, form: FormData): Promi
   const passwordHash = await hashPassword(next);
   const { error } = await db().from(ACCOUNT_TABLES.accounts).update({ password_hash: passwordHash, updated_at: now() }).eq("id", data.id);
   if (error) return { error: UNEXPECTED };
+  await clearAttempts([`signin-email:${data.email}`]);
   await startSession(data.id, data.role as AccountRole, passwordHash);
   redirect("/account");
+}
+
+/** Records that a company can read its inbox. Needs a button press, as mail scanners open links by themselves. */
+export async function confirmCompanyEmail(prev: FormState, form: FormData): Promise<FormState> {
+  return safely(() => confirmCompanyEmailInner(prev, form));
+}
+
+async function confirmCompanyEmailInner(_prev: FormState, form: FormData): Promise<FormState> {
+  const expired = "This link has expired. Please contact Axon Arbor and we’ll confirm your address another way.";
+  const token = readConfirmToken(String(form.get("token") ?? ""));
+  if (!token) return { error: expired };
+  const companies = () => db().from(ACCOUNT_TABLES.companies);
+  const { data, error } = await companies().select("email_confirmed_at").eq("account_id", token.id).maybeSingle();
+  if (error) return { error: UNEXPECTED };
+  if (!data) return { error: expired };
+  if (!data.email_confirmed_at) {
+    const { error: saveError } = await companies().update({ email_confirmed_at: now(), updated_at: now() }).eq("account_id", token.id);
+    if (saveError) return { error: UNEXPECTED };
+  }
+  return { error: null, ok: "Thank you. Your email address is confirmed." };
 }
 
 /* ---------- consultant profile ---------- */

@@ -56,14 +56,14 @@ function toCsv(rows: AdminAccountRow[], role: "consultant" | "company") {
   const header =
     role === "consultant"
       ? ["full_name", "email", "phone", "city", "expertise_1", "expertise_2", "expertise_3", "years_experience", "industries", "delivery_mode", "languages", "bio", "linkedin_url", "certifications", "notable_clients", "day_rate_band", "availability", "photo", "consent", "services_of_interest", "profile_status", "account_status", "signed_up", "last_sign_in"]
-      : ["company_name", "website", "industry", "city", "employee_count", "contact_name", "contact_role", "email", "phone", "email_domain", "account_manager", "account_status", "signed_up", "last_sign_in"];
+      : ["company_name", "website", "industry", "city", "employee_count", "contact_name", "contact_role", "email", "email_confirmed", "phone", "email_domain", "account_manager", "account_status", "signed_up", "last_sign_in"];
   const lines = rows.map((r) => {
     const c = r.consultant;
     const co = r.company;
     const values =
       role === "consultant"
         ? [c?.full_name, r.email, c?.phone, c?.city, c?.expertise[0], c?.expertise[1], c?.expertise[2], c?.years_experience, c?.industries, c?.delivery_mode, c?.languages, c?.bio, c?.linkedin_url, c?.certifications, c?.notable_clients, c?.day_rate_band, c?.availability, c?.photo_url, c?.consent ? "Yes" : "No", c?.services_of_interest.join("; "), c?.profile_status, r.status, r.created_at, r.last_login_at]
-        : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.phone, co?.email_domain, co?.account_manager, r.status, r.created_at, r.last_login_at];
+        : [co?.company_name, co?.website, co?.industry, co?.city, co?.employee_count, co?.contact_name, co?.contact_role, r.email, co?.email_confirmed_at ? "Yes" : "No", co?.phone, co?.email_domain, co?.account_manager, r.status, r.created_at, r.last_login_at];
     return values.map(csvCell).join(",");
   });
   return [header.join(","), ...lines].join("\n");
@@ -145,6 +145,7 @@ function Details({ row }: { row: AdminAccountRow }) {
             <Detail label="Contact" value={[co.contact_name, co.contact_role].filter(Boolean).join(", ")} />
             <Detail label="Phone" value={co.phone} />
             <Detail label="Email domain" value={co.email_domain} />
+            <Detail label="Email confirmed" value={co.email_confirmed_at ? formatDate(co.email_confirmed_at) : "Not yet"} />
             <Detail
               label="Website"
               value={co.website && <a href={co.website} target="_blank" rel="noreferrer" className="underline decoration-amber">{co.website} ↗</a>}
@@ -491,7 +492,12 @@ function describe(p: Pending): { title: string; body: string; confirm: string; n
   switch (p.kind) {
     case "company":
       return p.decision === "approve"
-        ? { title: `Approve ${who}?`, body: "They’ll get full access to their company account.", confirm: "Approve", note: "Account manager (optional)" }
+        ? {
+            title: `Approve ${who}?`,
+            body: `They’ll get full access to their company account.${p.row.company?.email_confirmed_at ? "" : " They haven’t confirmed their email address, so check it’s genuine first."}`,
+            confirm: "Approve",
+            note: "Account manager (optional)",
+          }
         : { title: `Reject ${who}?`, body: "They won’t be able to log in, and are told the registration wasn’t approved if they try.", confirm: "Reject", note: "Internal note (optional)" };
     case "profile":
       return {

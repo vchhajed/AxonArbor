@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { setPasswordFromLink, signInAccount, signUpCompany, signUpConsultant, type FormState } from "@/app/account-actions";
+import {
+  confirmCompanyEmail,
+  requestPasswordReset,
+  setPasswordFromLink,
+  signInAccount,
+  signUpCompany,
+  signUpConsultant,
+  type FormState,
+} from "@/app/account-actions";
 import { Button } from "@/components/ui/Button";
 import { CITIES, EMPLOYEE_BANDS } from "@/lib/phase2/options";
 import { CheckboxField, FormMessage, KeepValues, submitWithoutReset, Honeypot, SelectField, TextField } from "./fields";
@@ -20,8 +28,48 @@ export function SignInForm({ submitLabel = "Sign in" }: { submitLabel?: string }
         <Button type="submit" arrow disabled={pending}>
           {pending ? "Signing in…" : submitLabel}
         </Button>
+        <p className="text-base text-grey-600">
+          <Link href="/forgot-password" className="text-ink underline decoration-amber decoration-2 underline-offset-4">
+            Forgotten your password?
+          </Link>
+        </p>
       </form>
     </KeepValues>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [state, action, pending] = useActionState(requestPasswordReset, initial);
+  return (
+    <KeepValues values={state.values}>
+      <form action={action} onSubmit={submitWithoutReset(action)} noValidate className="max-w-md space-y-7">
+        <TextField name="email" label="Email" type="email" autoComplete="email" required />
+        <FormMessage error={state.error} ok={state.ok} />
+        <Button type="submit" arrow disabled={pending}>
+          {pending ? "Sending…" : "Send reset link"}
+        </Button>
+        <p className="text-base text-grey-600">
+          <Link href="/sign-in" className="text-ink underline decoration-amber decoration-2 underline-offset-4">
+            Back to sign in
+          </Link>
+        </p>
+      </form>
+    </KeepValues>
+  );
+}
+
+export function ConfirmEmailForm({ token }: { token: string }) {
+  const [state, action, pending] = useActionState(confirmCompanyEmail, initial);
+  return (
+    <form action={action} onSubmit={submitWithoutReset(action)} className="max-w-md space-y-7">
+      <input type="hidden" name="token" value={token} />
+      <FormMessage error={state.error} ok={state.ok} />
+      {!state.ok && (
+        <Button type="submit" arrow disabled={pending}>
+          {pending ? "Confirming…" : "Confirm my email"}
+        </Button>
+      )}
+    </form>
   );
 }
 

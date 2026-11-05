@@ -18,6 +18,8 @@ function settings() {
   };
 }
 
+export const emailsEnabled = () => settings() !== null;
+
 /**
  * Sends an account email through Resend. Off until ACCOUNT_EMAILS=on, so the
  * wording can be approved first. Never throws: a failed email must not stop a
