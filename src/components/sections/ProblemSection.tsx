@@ -1,7 +1,7 @@
 "use client";
 
 import { useInView, useMotionValueEvent, useScroll } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useIsEditing } from "@/components/editing-context";
 import { Container } from "@/components/layout/Container";
 import { MotionProvider } from "@/components/motion/MotionProvider";
@@ -10,20 +10,15 @@ import type { ProblemContent } from "@/content/types";
 import { VendorConstellation } from "./VendorConstellation";
 
 /** Scroll progress through the pinned section at which the vendors resolve into one ring. */
-const RESOLVE_AT = 0.4;
-/** Where one scroll lands: the top of the section, or well inside the resolved half. */
-const SCATTERED_PROGRESS = 0;
-const RESOLVED_PROGRESS = 0.75;
-
-/** How long the one-step smooth scroll takes; wheel input is swallowed meanwhile. */
-const STEP_LOCK_MS = 900;
+const RESOLVE_AT = 0.5;
 
 /**
  * "The Hidden Cost of Fragmented Learning".
  *
  * Desktop: the section is pinned. Hovering a pain point opens it and lights
- * up the vendors it affects. A single scroll then resolves the scattered
- * vendors into one ring around Axon Arbor; the next scroll moves on.
+ * up the vendors it affects. Scrolling on resolves the scattered vendors into
+ * one ring around Axon Arbor. The page always scrolls freely: the animation
+ * follows the scroll position and never takes over the wheel or trackpad.
  *
  * Mobile: no pinning. A scattered diagram opens the section and a connected
  * one closes it, resolving as it scrolls into view.
@@ -35,51 +30,18 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
   const mobileResolved = useInView(mobileResolvedRef, { once: true, amount: 0.6 });
   const [resolvedByScroll, setResolvedByScroll] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
-  const resolvedRef = useRef(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
   useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const next = p >= RESOLVE_AT;
-    resolvedRef.current = next;
-    setResolvedByScroll(next);
+    setResolvedByScroll(p >= RESOLVE_AT);
   });
 
   // In the admin editor the story is laid out flat so every item can be clicked.
   const editing = useIsEditing();
 
-  // While pinned, one wheel gesture flips between scattered and resolved.
-  // Scrolling past either end, the keyboard and the scrollbar behave normally.
-  useEffect(() => {
-    if (editing) return;
-    const pinQuery = window.matchMedia("(min-width: 64rem) and (min-height: 40rem)");
-    let lockedUntil = 0;
-
-    function onWheel(e: WheelEvent) {
-      const el = sectionRef.current;
-      if (!el || !pinQuery.matches || e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-      const rect = el.getBoundingClientRect();
-      const pinned = rect.top <= 1 && rect.bottom >= window.innerHeight - 1;
-      if (!pinned) return;
-      if (performance.now() < lockedUntil) {
-        e.preventDefault();
-        return;
-      }
-      if (Math.abs(e.deltaY) < 4) return;
-      const down = e.deltaY > 0;
-      if (down === resolvedRef.current) return; // let the page scroll on past the story
-      e.preventDefault();
-      lockedUntil = performance.now() + STEP_LOCK_MS;
-      const top = rect.top + window.scrollY;
-      const range = el.offsetHeight - window.innerHeight;
-      window.scrollTo({ top: top + range * (down ? RESOLVED_PROGRESS : SCATTERED_PROGRESS), behavior: "smooth" });
-    }
-
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
-  }, [editing]);
   const resolved = !editing && resolvedByScroll;
   const current = !resolved && hovered !== null ? hovered : -1;
   const highlighted = !resolved ? (painPoints[current]?.vendors ?? []) : [];
@@ -90,7 +52,7 @@ export function ProblemSection({ content }: { content: ProblemContent }) {
         ref={sectionRef}
         id="problem"
         aria-labelledby="problem-heading"
-        className={editing ? "relative" : "relative pin:h-[200vh]"}
+        className={editing ? "relative" : "relative pin:h-[150vh]"}
       >
         <div
           className={
