@@ -23,5 +23,6 @@ You need Google Chrome and a `.env.local` with the admin login and Supabase secr
 | `review` | Excel unhappy paths (including 300 rows), consent, pausing, CSV safety |
 | `reset` | Forgotten password and company email confirmation |
 | `emails` | Every account email, set-password links, Excel import |
+| `a11y` | WCAG A/AA rules on the account and admin pages, and keyboard use |
 
 `reset` adjusts to whether `20261105120000_axon_arbor_company_email_confirmed.sql` has been run: it prints which, and only checks that a confirmation saves once it has.

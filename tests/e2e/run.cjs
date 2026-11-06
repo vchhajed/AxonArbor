@@ -5,7 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { db } = require("./lib.cjs");
 
-const SUITES = ["gate", "services", "harden", "limits", "review", "reset", "emails"];
+const SUITES = ["gate", "services", "harden", "limits", "review", "reset", "emails", "a11y"];
 const PORT = 3123;
 const PORT_EMAILS_OFF = 3124;
 const root = path.resolve(__dirname, "../..");

@@ -47,7 +47,7 @@ function PhotoField({ initialUrl }: { initialUrl: string | null }) {
       <p className="eyebrow text-grey-700">Photo</p>
       <div className="mt-3 flex items-center gap-5">
         <div className="flex size-24 items-center justify-center overflow-hidden bg-grey-100">
-          {url ? <img src={url} alt="Your profile photo" className="h-full w-full object-cover grayscale" /> : <span className="text-xs text-grey-500">No photo</span>}
+          {url ? <img src={url} alt="Your profile photo" className="h-full w-full object-cover grayscale" /> : <span className="text-xs text-grey-600">No photo</span>}
         </div>
         <div className="space-y-2">
           <Button type="button" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}>
@@ -61,6 +61,8 @@ function PhotoField({ initialUrl }: { initialUrl: string | null }) {
         ref={fileRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        aria-label="Profile photo"
+        tabIndex={-1}
         className="sr-only"
         onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
       />
