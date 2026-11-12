@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { ACCOUNT_COOKIE, passwordVersion, readAccountToken, type AccountRole } from "./session";
 
@@ -70,7 +71,9 @@ const ACCOUNT_COLUMNS = "id, email, role, status, created_at, reviewed_at, revie
 
 /** The signed-in consultant or company, re-read from the database on every request. */
 export async function getCurrentAccount(): Promise<Account | null> {
-  const session = readAccountToken((await cookies()).get(ACCOUNT_COOKIE)?.value);
+  const token = (await cookies()).get(ACCOUNT_COOKIE)?.value;
+  await connection(); // the token's expiry check reads the clock, so it must run at request time
+  const session = readAccountToken(token);
   if (!session) return null;
   const { data } = await createServiceClient()
     .from(ACCOUNT_TABLES.accounts)

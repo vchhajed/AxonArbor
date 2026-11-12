@@ -74,7 +74,8 @@ Copy `.env.example` to `.env.local` and fill it in. Add the same variables to th
    numbers are on), and the topic ticker.
 4. **How it works** (`/#how-it-works`) and **Depth of expertise** (anonymised sample experts,
    labelled illustrative; optional client-logo strip, off until logos arrive).
-5. **Demo video**: 16:9 on wider screens, 9:16 on phones, captions from a `.vtt` file. Loads on play.
+5. **Demo video**: 16:9 on wider screens, 9:16 on phones. Plays muted when on screen, *Tap for sound* for
+   the narration. Captions are off (`demo.media.captions` empty); `public/video/demo-captions.vtt` is kept.
 6. **Testimonials**: off until real quotes arrive. No made-up testimonials.
 7. **Be among the first** (`/#join`): the two sign-up doors, plus *Schedule a consultation*.
 
@@ -114,5 +115,4 @@ dropped from stored documents when they load.
 
 ## TODO
 
-- Contact form: also notify the team by email (`src/app/api/contact/route.ts`).
 - Phase 2: consultant and organisation dashboards, onboarding.

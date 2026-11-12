@@ -134,18 +134,20 @@ export function CheckboxField({
   const checked = values ? values[name] === "on" : defaultChecked;
   return (
     <div>
-      <label className="flex items-start gap-3 text-sm leading-relaxed text-grey-700">
+      <label htmlFor={`f-${name}`} className="flex items-start gap-3 text-sm leading-relaxed text-grey-700">
         <input
+          id={`f-${name}`}
           type="checkbox"
           name={name}
           defaultChecked={checked}
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(name, error)}
           className="mt-1 size-4 shrink-0 accent-black"
         />
         <span>{label}</span>
       </label>
       {error && (
-        <p className="mt-2 flex items-start gap-2 text-sm text-ink">
+        <p id={`f-${name}-error`} className="mt-2 flex items-start gap-2 text-sm text-ink">
           <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 bg-amber" />
           {error}
         </p>
