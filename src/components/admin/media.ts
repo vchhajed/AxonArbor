@@ -35,7 +35,6 @@ export const BUILT_IN_IMAGES: MediaItem[] = [
   { name: "Rekha Radhakrishnan", src: "/people/network/rekha-radhakrishnan.webp", width: 480, height: 600 },
   { name: "Ripudaman Singh Sujlana", src: "/people/network/ripudaman-singh-sujlana.webp", width: 480, height: 600 },
   { name: "Rubal Sabharwal", src: "/people/network/rubal-sabharwal.webp", width: 480, height: 600 },
-  { name: "Satadru Chakraborty", src: "/people/network/satadru-chakraborty.webp", width: 480, height: 600 },
   { name: "Sneha Venkataram", src: "/people/network/sneha-venkataram.webp", width: 480, height: 600 },
   { name: "Supriiya Patil", src: "/people/network/supriiya-patil.webp", width: 480, height: 600 },
   { name: "Swati Adhikary", src: "/people/network/swati-adhikary.webp", width: 480, height: 600 },
