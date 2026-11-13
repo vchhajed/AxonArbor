@@ -217,12 +217,6 @@ export const about: AboutContent = {
         image: network("rubal-sabharwal", "Rubal Sabharwal"),
       },
       {
-        name: "Satadru Chakraborty",
-        role: "Enterprise HR & Organisation Design",
-        bio: "Satadru has 20+ years in enterprise HR, organisation design, workforce strategy and executive coaching, and is Belbin Team Role accredited. His experience spans WatchGuard Technologies, Progress Software, CGI, Signify and Schneider Electric.",
-        image: network("satadru-chakraborty", "Satadru Chakraborty"),
-      },
-      {
         name: "Sneha Venkataram",
         role: "Executive, Team & Systems Coaching",
         bio: "A Certified Professional Co-Active Coach and ICF ACC with ORSC and Leadership Circle Profile certifications, Sneha has 20+ years in coaching, OD and global HR business partnering. She has worked with HPE, Titan, Emerson and National Instruments.",
