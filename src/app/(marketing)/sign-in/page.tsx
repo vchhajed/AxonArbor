@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { GuestOnly } from "@/components/accounts/GuestOnly";
+import { PageHeader } from "@/components/sections/PageHeader";
 import { getContent } from "@/lib/content";
 import { pageMetadata } from "@/lib/metadata";
 import { SignInView } from "@/views/SignInView";
@@ -10,5 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   const [signIn, site] = await Promise.all([getContent("sign-in"), getContent("site")]);
-  return <SignInView signIn={signIn} site={site} />;
+  return (
+    <Suspense fallback={<PageHeader {...signIn.header} />}>
+      <GuestOnly>
+        <SignInView signIn={signIn} site={site} />
+      </GuestOnly>
+    </Suspense>
+  );
 }
