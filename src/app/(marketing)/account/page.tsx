@@ -3,6 +3,7 @@ import { Suspense, type ReactNode } from "react";
 import { signOutAccount } from "@/app/account-actions";
 import { ChangePasswordForm, CompanyProfileForm, ConsultantProfileForm, RemovalButton } from "@/components/accounts/AccountForms";
 import { Container } from "@/components/layout/Container";
+import { Button } from "@/components/ui/Button";
 import { getCompanyProfile, getConsultantProfile, requireAccount, type Account, type ProfileStatus } from "@/lib/accounts/data";
 
 export const metadata: Metadata = {
@@ -53,18 +54,20 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 function Header({ account, name }: { account: Account; name: string }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-6 pb-10">
-      <div>
-        <p className="eyebrow text-grey-600">{account.role === "consultant" ? "Consultant account" : "Company account"}</p>
-        <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Hello, {name}.</h1>
-        <p className="mt-3 text-grey-600">Signed in as {account.email}</p>
-      </div>
-      <form action={signOutAccount}>
-        <button type="submit" className="font-label text-xs font-semibold tracking-[0.16em] text-grey-700 uppercase hover:text-ink">
-          Sign out
-        </button>
-      </form>
+    <div className="pb-10">
+      <p className="eyebrow text-grey-600">{account.role === "consultant" ? "Consultant account" : "Company account"}</p>
+      <h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Hello, {name}.</h1>
+      <p className="mt-3 text-grey-600">Signed in as {account.email}</p>
     </div>
+  );
+}
+
+/** Ends the page: Sign out, in the amber button, at the bottom right. */
+function SignOut() {
+  return (
+    <form action={signOutAccount} className="flex justify-end border-t border-grey-200 pt-10">
+      <Button type="submit">Sign out</Button>
+    </form>
   );
 }
 
@@ -95,6 +98,7 @@ async function AccountPage() {
         <Section title="Password">
           <ChangePasswordForm />
         </Section>
+        <SignOut />
       </Container>
     );
   }
@@ -116,6 +120,7 @@ async function AccountPage() {
       <Section title="Password">
         <ChangePasswordForm />
       </Section>
+      <SignOut />
     </Container>
   );
 }

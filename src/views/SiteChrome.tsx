@@ -3,11 +3,14 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import type { SiteContent } from "@/content/types";
 
-/** Header, main landmark and footer around every public page. */
-export function SiteChrome({ site, children }: { site: SiteContent; children: ReactNode }) {
+/**
+ * Header, main landmark and footer around every public page. The public site
+ * passes a header that knows who is signed in; the inline editor uses the default.
+ */
+export function SiteChrome({ site, header, children }: { site: SiteContent; header?: ReactNode; children: ReactNode }) {
   return (
     <>
-      <Header site={site} />
+      {header ?? <Header site={site} />}
       <main id="main" className="flex-1">
         {children}
       </main>

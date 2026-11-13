@@ -18,6 +18,7 @@ import {
   RESET_LINK_MAX_AGE,
   type AccountRole,
 } from "@/lib/accounts/session";
+import { SESSION_COOKIE as ADMIN_COOKIE } from "@/lib/admin/session";
 import { companyRequestReceived, consultantWelcome, passwordReset } from "@/lib/email/messages";
 import { emailsEnabled, sendEmail, siteOrigin } from "@/lib/email/send";
 import {
@@ -77,8 +78,11 @@ const TOO_MANY = "Too many attempts. Please wait 15 minutes and try again.";
 const UNIQUE_VIOLATION = "23505";
 const DUPLICATE = "An account with this email already exists. Try signing in.";
 
+/** Signs a company or consultant in. Admin and account sessions are exclusive, so this ends any admin session. */
 async function startSession(id: string, role: AccountRole, passwordHash: string) {
-  (await cookies()).set(ACCOUNT_COOKIE, createAccountToken(id, role, passwordHash), accountCookieOptions);
+  const jar = await cookies();
+  jar.set(ACCOUNT_COOKIE, createAccountToken(id, role, passwordHash), accountCookieOptions);
+  jar.delete({ name: ADMIN_COOKIE, path: "/admin" });
 }
 
 async function emailTaken(email: string) {

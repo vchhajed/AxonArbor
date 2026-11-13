@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isContentKey } from "@/content/registry";
+import { ACCOUNT_COOKIE } from "@/lib/accounts/session";
 import { getAdminSession } from "@/lib/admin/auth";
 import {
   adminConfigured,
@@ -42,13 +43,16 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
   }
   await clearAttempts(limits.map((l) => l.key));
 
-  (await cookies()).set(SESSION_COOKIE, createSessionToken(username.trim()), {
+  const jar = await cookies();
+  jar.set(SESSION_COOKIE, createSessionToken(username.trim()), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/admin",
     maxAge: SESSION_MAX_AGE,
   });
+  // Admin and account sessions are exclusive: signing in here ends any company or consultant session.
+  jar.delete({ name: ACCOUNT_COOKIE, path: "/" });
   redirect("/admin");
 }
 

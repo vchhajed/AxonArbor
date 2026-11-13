@@ -11,11 +11,15 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-type HeaderProps = {
+export type HeaderProps = {
   site: Pick<SiteContent, "name" | "logo" | "nav" | "signIn" | "headerCta" | "skipLinkLabel">;
+  /** A company or consultant is signed in: "Sign in" becomes "My account". Sign out is on the account page. */
+  signedIn?: boolean;
 };
 
-export function Header({ site }: HeaderProps) {
+const ACCOUNT_HREF = "/account";
+
+export function Header({ site, signedIn = false }: HeaderProps) {
   const { nav: mainNav, signIn: signInLink, headerCta } = site;
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -78,12 +82,22 @@ export function Header({ site }: HeaderProps) {
           </nav>
 
           <div className="hidden items-center gap-6 lg:flex">
-            <Link
-              href={signInLink.href}
-              className="text-sm text-grey-600 transition-colors hover:text-ink"
-            >
-              {signInLink.label}
-            </Link>
+            {signedIn ? (
+              <Link
+                href={ACCOUNT_HREF}
+                aria-current={isActive(pathname, ACCOUNT_HREF) ? "page" : undefined}
+                className="text-sm text-grey-600 transition-colors hover:text-ink"
+              >
+                My account
+              </Link>
+            ) : (
+              <Link
+                href={signInLink.href}
+                className="text-sm text-grey-600 transition-colors hover:text-ink"
+              >
+                {signInLink.label}
+              </Link>
+            )}
             {contact && (
               <Link
                 href={contact.href}
@@ -165,13 +179,19 @@ export function Header({ site }: HeaderProps) {
               {headerCta.label}
             </Link>
           )}
-          <Link
-            href={signInLink.href}
-            onClick={() => setOpen(false)}
-            className="eyebrow mt-8 text-grey-600"
-          >
-            {signInLink.label}
-          </Link>
+          {signedIn ? (
+            <Link href={ACCOUNT_HREF} onClick={() => setOpen(false)} className="eyebrow mt-8 text-grey-600">
+              My account
+            </Link>
+          ) : (
+            <Link
+              href={signInLink.href}
+              onClick={() => setOpen(false)}
+              className="eyebrow mt-8 text-grey-600"
+            >
+              {signInLink.label}
+            </Link>
+          )}
         </Container>
       </div>
     </>
